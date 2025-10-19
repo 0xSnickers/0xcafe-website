@@ -1,0 +1,159 @@
+{
+  "nav": {
+    "batchOperations": "批量操作",
+    "monitoring": "监控",
+    "solana": "Solana",
+    "gas": "实时Gas",
+    "dropdown": {
+      "batchOps": {
+        "generateWallets": "批量生成钱包",
+        "checkBalance": "批量查余额",
+        "approve": "批量授权",
+        "transfer": "批量转账",
+        "collect": "批量归集"
+      },
+      "monitoring": {
+        "token": "代币监控"
+      },
+      "solana": {
+        "batchSend": "批量发送",
+        "checkBalance": "批量查余额",
+        "collect": "批量归集",
+        "multiTransfer": "多对多转账"
+      }
+    }
+  },
+  "hero": {
+    "freeBadge": "100% 免费",
+    "title": "区块链免费工具",
+    "subtitle": "让 web3 链上操作更简单快捷",
+    "cta": "立即开始",
+    "features": {
+      "free": {
+        "icon": "👩‍💻",
+        "label": "代码开源"
+      },
+      "secure": {
+        "icon": "🗳️",
+        "label": "开箱即用"
+      },
+      "professional": {
+        "icon": "🛠️",
+        "label": "专业工具"
+      }
+    },
+    "illustration": {
+      "freeTools": "免费工具"
+    }
+  },
+  "tools": {
+    "title": "热门工具",
+    "subtitle": "近期大家都在使用的区块链产品",
+    "viewAll": "所有工具",
+    "generateWallets": {
+      "title": "批量生成钱包",
+      "description": "一键批量生成多个EVM钱包地址，支持导出私钥"
+    },
+    "checkBalance": {
+      "title": "批量查余额",
+      "description": "同时查询多个钱包的代币余额，支持多链查询"
+    },
+    "batchTransfer": {
+      "title": "批量转账",
+      "description": "只需打包一次，批量发送 Token 到千个钱包，节省Gas费用"
+    },
+    "batchCollect": {
+      "title": "批量归集",
+      "description": "将多个钱包的资产快速归集到主钱包"
+    },
+    "tokenMonitor": {
+      "title": "代币监控",
+      "description": "实时监控代币交易，第一时间获取链上动态"
+    },
+    "solanaBatch": {
+      "title": "Solana批量发送",
+      "description": "高效批量发送SOL和SPL代币，低手续费"
+    }
+  },
+  "values": {
+    "flexible": {
+      "title": "免费开放",
+      "description": "100% 免费使用，无任何隐藏费用。开放所有功能，让区块链工具触手可及。",
+      "cta": "立即使用"
+    },
+    "secure": {
+      "title": "开源透明",
+      "description": "代码完全开源，技术透明可验证。欢迎审查与贡献，共建可信生态。",
+      "cta": "查看源码"
+    },
+    "professional": {
+      "title": "定制开发",
+      "description": "提供专业的定制化服务，满足企业与个人的独特需求。快速实现你的创意。",
+      "cta": "联系我们"
+    }
+  },
+  "gas": {
+    "title": "Gas Price 报价 (Gwei)",
+    "subtitle": "基于以往3区块内存费的估价",
+    "installExtension": "安装 Gas 浏览器插件",
+    "priority": "优先费",
+    "speed": {
+      "fastest": "极速",
+      "fast": "快速",
+      "normal": "正常",
+      "slow": "缓慢"
+    },
+    "basePrice": "优先费用",
+    "maxPrice": "最大费用",
+    "ethPrice": "ETH 价格",
+    "baseGasPrice": "基础Gas价格"
+  },
+  "burn": {
+    "title": "燃烧记录",
+    "period": "时间",
+    "totalBurned": "燃烧总量",
+    "currentPeriod": "当前周期",
+    "burnRate": "燃烧率",
+    "recentBlocks": "区块",
+    "recentBurns": "燃烧记录",
+    "rankings": "燃烧排行",
+    "categories": "燃烧类别",
+    "gas": "Gas"
+  },
+  "footer": {
+    "brand": {
+      "name": "0xcafe",
+      "tagline": "您的 Web3 工具箱"
+    },
+    "slogan": "所有的积累，都是在为未来蓄力",
+    "sloganSub": "用心打造每一个工具，为区块链世界贡献力量",
+    "quickLinks": "快速链接",
+    "followUs": "关注我们",
+    "copyright": "© {{year}} 0xcafe. 保留所有权利。",
+    "platform": "区块链工具平台",
+    "rights": "版权所有"
+  },
+  "theme": {
+    "light": "浅色",
+    "dark": "深色",
+    "system": "系统",
+    "toggle": "切换主题"
+  },
+  "language": {
+    "toggle": "切换语言",
+    "current": "当前语言：{{language}}"
+  },
+  "wallet": {
+    "connect": "连接钱包",
+    "disconnect": "断开连接",
+    "myAccount": "我的账户",
+    "viewAccount": "查看账户",
+    "switchNetwork": "切换网络"
+  },
+  "telegram": {
+    "login": "Telegram登录",
+    "logout": "退出登录",
+    "account": "Telegram账户",
+    "accountDescription": "您已通过Telegram登录"
+  }
+}

@@ -1,0 +1,159 @@
+{
+  "nav": {
+    "batchOperations": "Batch Operations",
+    "monitoring": "Monitoring",
+    "solana": "Solana",
+    "gas": "Real-time Gas",
+    "dropdown": {
+      "batchOps": {
+        "generateWallets": "Batch Generate Wallets",
+        "checkBalance": "Batch Check Balance",
+        "approve": "Batch Approve",
+        "transfer": "Batch Transfer",
+        "collect": "Batch Collect"
+      },
+      "monitoring": {
+        "token": "Token Monitoring"
+      },
+      "solana": {
+        "batchSend": "Batch Send",
+        "checkBalance": "Batch Check Balance",
+        "collect": "Batch Collect",
+        "multiTransfer": "Multi-to-Multi Transfer"
+      }
+    }
+  },
+  "hero": {
+    "freeBadge": "100% Free",
+    "title": "Free Blockchain Tools",
+    "subtitle": "Make web3 on-chain operations simpler and faster",
+    "cta": "Get Started",
+    "features": {
+      "free": {
+        "icon": "👩‍💻",
+        "label": "Open Source"
+      },
+      "secure": {
+        "icon": "🗳️",
+        "label": "Easy To Use"
+      },
+      "professional": {
+        "icon": "🛠️",
+        "label": "Professional"
+      }
+    },
+    "illustration": {
+      "freeTools": "Free Tools"
+    }
+  },
+  "tools": {
+    "title": "Popular Tools",
+    "subtitle": "Recently popular blockchain products",
+    "viewAll": "All Tools",
+    "generateWallets": {
+      "title": "Generate Wallets",
+      "description": "Batch generate multiple EVM wallet addresses with private key export"
+    },
+    "checkBalance": {
+      "title": "Check Balance",
+      "description": "Query token balances of multiple wallets simultaneously across chains"
+    },
+    "batchTransfer": {
+      "title": "Batch Transfer",
+      "description": "Send tokens to thousands of wallets in one transaction, save gas fees"
+    },
+    "batchCollect": {
+      "title": "Batch Collect",
+      "description": "Quickly collect assets from multiple wallets to main wallet"
+    },
+    "tokenMonitor": {
+      "title": "Token Monitor",
+      "description": "Real-time token transaction monitoring and on-chain alerts"
+    },
+    "solanaBatch": {
+      "title": "Solana Batch",
+      "description": "Efficiently batch send SOL and SPL tokens with low fees"
+    }
+  },
+  "values": {
+    "flexible": {
+      "title": "Free & Open",
+      "description": "100% free to use, no hidden fees. All features unlocked, blockchain tools at your fingertips.",
+      "cta": "Get Started"
+    },
+    "secure": {
+      "title": "Open Source",
+      "description": "Fully open source code, transparent and verifiable. Welcome to review and contribute to a trusted ecosystem.",
+      "cta": "View Source"
+    },
+    "professional": {
+      "title": "Custom Service",
+      "description": "Professional customization services for unique enterprise and individual needs. Bring your ideas to life quickly.",
+      "cta": "Contact Us"
+    }
+  },
+  "gas": {
+    "title": "Gas Price Report (Gwei)",
+    "subtitle": "Based on transaction costs in the past 3 blocks",
+    "installExtension": "Install Gas Browser Extension",
+    "priority": "Priority",
+    "speed": {
+      "fastest": "Fastest",
+      "fast": "Fast",
+      "normal": "Normal",
+      "slow": "Slow"
+    },
+    "basePrice": "Base Price",
+    "maxPrice": "Max Price",
+    "ethPrice": "ETH Price",
+    "baseGasPrice": "Base Gas Price"
+  },
+  "burn": {
+    "title": "Burn History",
+    "period": "Period",
+    "totalBurned": "Total Burned",
+    "currentPeriod": "Current Period",
+    "burnRate": "Burn Rate",
+    "recentBlocks": "Recent Blocks",
+    "recentBurns": "Recent Burns",
+    "rankings": "Burn Rankings",
+    "categories": "Burn Categories",
+    "gas": "Gas"
+  },
+  "footer": {
+    "brand": {
+      "name": "0xcafe",
+      "tagline": "Your Web3 Utility Toolbox"
+    },
+    "slogan": "All accumulation is building strength for the future",
+    "sloganSub": "Crafting every tool with care, contributing to the blockchain world",
+    "quickLinks": "Quick Links",
+    "followUs": "Follow Us",
+    "copyright": "© {{year}} 0xcafe. All rights reserved.",
+    "platform": "Blockchain Utility Platform",
+    "rights": "All Rights Reserved"
+  },
+  "theme": {
+    "light": "Light",
+    "dark": "Dark",
+    "system": "System",
+    "toggle": "Toggle theme"
+  },
+  "language": {
+    "toggle": "Toggle language",
+    "current": "Current language: {{language}}"
+  },
+  "wallet": {
+    "connect": "Connect Wallet",
+    "disconnect": "Disconnect",
+    "myAccount": "My Account",
+    "viewAccount": "View Account",
+    "switchNetwork": "Switch Network"
+  },
+  "telegram": {
+    "login": "Telegram Login",
+    "logout": "Logout",
+    "account": "Telegram Account",
+    "accountDescription": "You are logged in via Telegram"
+  }
+}
