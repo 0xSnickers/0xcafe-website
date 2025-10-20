@@ -66,8 +66,8 @@ export function WalletButton() {
         className="bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700"
         disabled={!isReady}
       >
-        <Wallet className="mr-2 h-4 w-4" />
-        {t('wallet.connect')}
+        <Wallet className="h-4 w-4 sm:mr-2" />
+        <span className="hidden sm:inline">{t('wallet.connect')}</span>
       </Button>
     )
   }
@@ -75,9 +75,11 @@ export function WalletButton() {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="outline" className="gap-2">
+        <Button variant="outline" className="gap-0 sm:gap-2">
           <Wallet className="h-4 w-4" />
-          {address && formatAddress(address)}
+          <span className="hidden sm:inline ml-2">
+            {address && formatAddress(address)}
+          </span>
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-56">

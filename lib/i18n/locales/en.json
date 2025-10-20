@@ -155,5 +155,25 @@
     "logout": "Logout",
     "account": "Telegram Account",
     "accountDescription": "You are logged in via Telegram"
+  },
+  "contact": {
+    "title": "Contact Us",
+    "subtitle": "Have questions or need custom development services? Feel free to reach out - we're here to help.",
+    "telegram": {
+      "description": "Get instant replies and technical support via Telegram"
+    },
+    "twitter": {
+      "description": "Follow us for latest updates and product news"
+    },
+    "email": {
+      "description": "Send us an email for business inquiries or technical questions"
+    },
+    "openButton": "Contact Now",
+    "businessInquiries": {
+      "title": "Business Inquiries",
+      "description": "For enterprise custom development, technical partnerships, or other business needs, reach out via Telegram."
+    },
+    "startChat": "Start Chat",
+    "responseTime": "💡 We typically respond within 24 hours"
   }
 }

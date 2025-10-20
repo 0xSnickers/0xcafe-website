@@ -89,7 +89,7 @@ export function Header() {
       transition={{ duration: 0.5 }}
     >
       <div className="container mx-auto px-4">
-        <div className="flex items-center h-16 gap-8">
+        <div className="flex items-center h-16 gap-2 sm:gap-8">
           {/* Logo - Left */}
           <Link href="/" className="flex items-center space-x-2 flex-shrink-0">
             <motion.div
@@ -107,6 +107,21 @@ export function Header() {
               <span className="text-xl font-bold hidden sm:inline">0xcafe</span>
             </motion.div>
           </Link>
+
+          {/* Mobile Menu Button - Right after Logo on mobile */}
+          <Button
+            variant="ghost"
+            size="icon"
+            className="lg:hidden flex-shrink-0"
+            onClick={() => setIsMenuOpen(!isMenuOpen)}
+            aria-label="Toggle menu"
+          >
+            {isMenuOpen ? (
+              <X className="h-5 w-5" />
+            ) : (
+              <Menu className="h-5 w-5" />
+            )}
+          </Button>
 
           {/* Desktop Navigation - Left aligned */}
           <nav className="hidden lg:flex items-center space-x-1 flex-1">
@@ -162,8 +177,8 @@ export function Header() {
           </nav>
 
           {/* Actions - Right side */}
-          <div className="flex items-center space-x-2 ml-auto">
-            {/* Theme & Language Toggle */}
+          <div className="flex items-center space-x-1 sm:space-x-2 ml-auto">
+            {/* Theme & Language Toggle - Always visible */}
             <ThemeToggle />
             <LocaleToggle />
             
@@ -171,25 +186,10 @@ export function Header() {
             <Separator orientation="vertical" className="h-6 hidden sm:block" />
             
             {/* Web3 Connection Buttons */}
-            <div className="flex items-center space-x-2">
+            <div className="flex items-center space-x-1 sm:space-x-2">
               <TelegramConnect variant="button" />
               <WalletButton />
             </div>
-            
-            {/* Mobile Menu Button */}
-            <Button
-              variant="ghost"
-              size="icon"
-              className="lg:hidden ml-2"
-              onClick={() => setIsMenuOpen(!isMenuOpen)}
-              aria-label="Toggle menu"
-            >
-              {isMenuOpen ? (
-                <X className="h-5 w-5" />
-              ) : (
-                <Menu className="h-5 w-5" />
-              )}
-            </Button>
           </div>
         </div>
 

@@ -155,5 +155,25 @@
     "logout": "退出登录",
     "account": "Telegram账户",
     "accountDescription": "您已通过Telegram登录"
+  },
+  "contact": {
+    "title": "联系我们",
+    "subtitle": "有任何疑问或需要定制开发服务？随时与我们联系，我们很乐意为您提供帮助。",
+    "telegram": {
+      "description": "通过 Telegram 获取即时回复和技术支持"
+    },
+    "twitter": {
+      "description": "关注我们获取最新动态和产品更新"
+    },
+    "email": {
+      "description": "发送邮件咨询商务合作或技术问题"
+    },
+    "openButton": "立即联系",
+    "businessInquiries": {
+      "title": "商务合作咨询",
+      "description": "对于企业级定制开发、技术合作或其他商务需求，欢迎通过 Telegram 与我们取得联系。"
+    },
+    "startChat": "开始对话",
+    "responseTime": "💡 我们通常在 24 小时内回复消息"
   }
 }

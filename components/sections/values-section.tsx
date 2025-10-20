@@ -3,6 +3,7 @@
 import * as React from 'react'
 import { motion } from 'framer-motion'
 import { useTranslation } from 'react-i18next'
+import { useRouter } from 'next/navigation'
 import { ArrowRight } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 
@@ -12,6 +13,15 @@ import { Button } from '@/components/ui/button'
  */
 export function ValuesSection() {
   const { t } = useTranslation()
+  const router = useRouter()
+
+  // 处理CTA按钮点击
+  const handleCtaClick = (valueId: string) => {
+    if (valueId === 'professional') {
+      router.push('/contact')
+    }
+    // 其他按钮可以添加对应的逻辑
+  }
 
   const values = [
     {
@@ -248,7 +258,11 @@ export function ValuesSection() {
 
                   {/* Link */}
                   <div className="text-center">
-                    <Button variant="ghost" className="group/btn">
+                    <Button 
+                      variant="ghost" 
+                      className="group/btn"
+                      onClick={() => handleCtaClick(value.id)}
+                    >
                       {t(`values.${value.id}.cta`)}
                       <ArrowRight className="ml-2 h-4 w-4 group-hover/btn:translate-x-1 transition-transform" />
                     </Button>

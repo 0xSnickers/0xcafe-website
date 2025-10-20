@@ -2,7 +2,7 @@
 
 import * as React from 'react'
 import { motion } from 'framer-motion'
-import { Github, Send, MessageCircle } from 'lucide-react'
+import { Github, Send, Twitter } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 
 /**
@@ -12,23 +12,25 @@ import { useTranslation } from 'react-i18next'
 export function Footer() {
   const { t } = useTranslation()
   // const currentYear = new Date().getFullYear()
-
+  const telegramGroupLink = process.env.NEXT_PUBLIC_TELEGRAM_GROUP_LINK || ''
+  const twitterContactLink = process.env.NEXT_PUBLIC_TWITTER_CONTACT_LINK || ''
+  const githubLink = process.env.NEXT_PUBLIC_GITHUB_LINK || ''
   const socialLinks = [
     { 
       icon: Github, 
-      href: 'https://github.com', 
+      href: githubLink, 
       label: 'GitHub',
-      color: 'hover:text-gray-900 dark:hover:text-gray-100'
+      color: 'hover:text-foreground'
     },
     { 
       icon: Send, 
-      href: 'https://t.me', 
+      href: telegramGroupLink, 
       label: 'Telegram',
       color: 'hover:text-blue-500'
     },
     { 
-      icon: MessageCircle, 
-      href: 'https://twitter.com', 
+      icon: Twitter, 
+      href: twitterContactLink, 
       label: 'Twitter',
       color: 'hover:text-sky-500'
     },
@@ -60,7 +62,7 @@ export function Footer() {
             </motion.div>
             
             {/* Slogan text */}
-            <span className="text-white text-sm font-medium">
+            <span className="text-foreground text-sm font-medium">
               {t('footer.slogan')}
             </span>
           </div>
@@ -76,7 +78,7 @@ export function Footer() {
                 aria-label={social.label}
                 whileHover={{ scale: 1.15, y: -2 }}
                 whileTap={{ scale: 0.95 }}
-                className="text-white transition-colors hover:opacity-80"
+                className={`text-muted-foreground transition-colors ${social.color} hover:opacity-80`}
               >
                 <social.icon className="h-5 w-5" />
               </motion.a>
