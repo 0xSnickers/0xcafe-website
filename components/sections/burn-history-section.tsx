@@ -3,7 +3,8 @@
 import * as React from 'react'
 import { motion } from 'framer-motion'
 import { useTranslation } from 'react-i18next'
-import { Flame, Crown } from 'lucide-react'
+import { Flame, Crown, RefreshCw, AlertCircle } from 'lucide-react'
+import { useBurnHistory, useBurnRanking, useTotalBurned } from '@/hooks/use-gas-data'
 
 /**
  * Burn History Section - 燃烧记录展示
@@ -12,6 +13,7 @@ import { Flame, Crown } from 'lucide-react'
 export function BurnHistorySection() {
   const { t } = useTranslation()
   const [selectedPeriod, setSelectedPeriod] = React.useState('5m')
+  // const [selectedChain, setSelectedChain] = React.useState<SupportedChain>('ethereum')
 
   const periods = [
     { id: '30s', label: '30s' },
@@ -23,31 +25,89 @@ export function BurnHistorySection() {
     { id: '30d', label: '30d' },
   ]
 
-  // Mock data
-  const burnTotalData = {
-    amount: '0.076',
-    rate: '0.152',
-  }
+  // 获取燃烧历史数据
+  const { 
+    data: burnHistory, 
+    isLoading: historyLoading, 
+    error: historyError,
+    refetch: refetchHistory
+  } = useBurnHistory('ethereum', 100, {
+    refetchInterval: 60000, // 1分钟刷新
+  })
 
-  const blocks = [
-    { number: '#23,603,056', gas: '0.116', burned: '0.005' },
-    { number: '#23,603,055', gas: '0.122', burned: '0.002' },
-    { number: '#23,603,054', gas: '0.124', burned: '0.002' },
-    { number: '#23,603,053', gas: '0.124', burned: '0.003' },
-    { number: '#23,603,052', gas: '0.128', burned: '0.002' },
-    { number: '#23,603,051', gas: '0.129', burned: '0.003' },
-  ]
+  // 获取燃烧排行榜
+  const { 
+    data: burnRankings, 
+    isLoading: rankingLoading, 
+    error: rankingError,
+    refetch: refetchRanking
+  } = useBurnRanking('ethereum', 50, {
+    refetchInterval: 300000, // 5分钟刷新
+  })
 
-  const burnRankings = [
-    { name: 'Native Transfer', burned: '0.006', time: '5m' },
-    { name: 'Tether: USDT Stablecoin', tag: 'DEFI', burned: '0.005', time: '5m' },
-    { name: 'XEN Batch Minter', tag: 'XEN', burned: '0.004', time: '5m' },
-    { name: 'Uniswap V2: Router 2', tag: 'DEFI', burned: '0.003', time: '5m' },
-    { name: 'USDC', tag: 'DEFI', burned: '0.002', time: '5m' },
-    { name: 'Okex: Dex Router', tag: 'DEFI', burned: '0.001', time: '5m' },
-    { name: 'Binance: Dex Router', tag: 'DEFI', burned: '0.001', time: '5m' },
-    { name: 'New Contract', burned: '0.001', time: '5m' },
-  ]
+  // 获取燃烧总量
+  const { 
+    data: totalBurned, 
+    isLoading: totalLoading, 
+    error: totalError 
+  } = useTotalBurned('ethereum', {
+    refetchInterval: 300000, // 5分钟刷新
+  })
+
+  // 计算燃烧总量数据
+  const burnTotalData = React.useMemo(() => {
+    if (!totalBurned) {
+      return { amount: '0.076', rate: '0.152' }
+    }
+    
+    return {
+      amount: totalBurned.toFixed(3),
+      rate: (totalBurned * 0.02).toFixed(3), // 假设燃烧率
+    }
+  }, [totalBurned])
+
+  // 格式化燃烧历史数据
+  const formattedBlocks = React.useMemo(() => {
+    if (!burnHistory) {
+      return [
+        { number: '#23,603,056', gas: '0.116', burned: '0.005' },
+        { number: '#23,603,055', gas: '0.122', burned: '0.002' },
+        { number: '#23,603,054', gas: '0.124', burned: '0.002' },
+        { number: '#23,603,053', gas: '0.124', burned: '0.003' },
+        { number: '#23,603,052', gas: '0.128', burned: '0.002' },
+        { number: '#23,603,051', gas: '0.129', burned: '0.003' },
+      ]
+    }
+
+    return burnHistory.slice(0, 6).map((block, _index) => ({
+      number: `#${block.blockNumber.toLocaleString()}`,
+      gas: (block.burned * 20).toFixed(3), // 假设gas价格
+      burned: block.burned.toFixed(3),
+    }))
+  }, [burnHistory])
+
+  // 格式化燃烧排行榜数据
+  const formattedRankings = React.useMemo(() => {
+    if (!burnRankings) {
+      return [
+        { name: 'Native Transfer', burned: '0.006', time: '5m' },
+        { name: 'Tether: USDT Stablecoin', tag: 'DEFI', burned: '0.005', time: '5m' },
+        { name: 'XEN Batch Minter', tag: 'XEN', burned: '0.004', time: '5m' },
+        { name: 'Uniswap V2: Router 2', tag: 'DEFI', burned: '0.003', time: '5m' },
+        { name: 'USDC', tag: 'DEFI', burned: '0.002', time: '5m' },
+        { name: 'Okex: Dex Router', tag: 'DEFI', burned: '0.001', time: '5m' },
+        { name: 'Binance: Dex Router', tag: 'DEFI', burned: '0.001', time: '5m' },
+        { name: 'New Contract', burned: '0.001', time: '5m' },
+      ]
+    }
+
+    return burnRankings.slice(0, 8).map((ranking, index) => ({
+      name: `Address ${ranking.address.slice(0, 8)}...`,
+      burned: ranking.burned.toFixed(3),
+      time: '5m',
+      tag: index < 3 ? 'DEFI' : undefined,
+    }))
+  }, [burnRankings])
 
   const burnCategories = [
     { name: 'DEFI', burned: '0.021' },
@@ -78,7 +138,43 @@ export function BurnHistorySection() {
           ))}
         </div>
 
-        <h2 className="text-3xl font-bold mb-8">{t('burn.title')}</h2>
+        <div className="flex items-center justify-between mb-8">
+          <h2 className="text-3xl font-bold">{t('burn.title')}</h2>
+          
+          {/* 实时状态指示器 */}
+          <div className="flex items-center gap-2">
+            {historyLoading || rankingLoading || totalLoading ? (
+              <motion.div
+                animate={{ rotate: 360 }}
+                transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
+                className="text-blue-500"
+              >
+                <RefreshCw className="h-5 w-5" />
+              </motion.div>
+            ) : historyError || rankingError || totalError ? (
+              <AlertCircle className="h-5 w-5 text-red-500" />
+            ) : (
+              <motion.div
+                animate={{ scale: [1, 1.2, 1] }}
+                transition={{ duration: 2, repeat: Infinity }}
+                className="w-3 h-3 bg-green-500 rounded-full"
+              />
+            )}
+            
+            {/* 手动刷新按钮 */}
+            <button
+              onClick={() => {
+                refetchHistory()
+                refetchRanking()
+              }}
+              disabled={historyLoading || rankingLoading}
+              className="flex items-center gap-2 px-3 py-1.5 text-sm bg-background hover:bg-muted rounded-lg transition-colors disabled:opacity-50"
+            >
+              <RefreshCw className={`h-4 w-4 ${(historyLoading || rankingLoading) ? 'animate-spin' : ''}`} />
+              <span>刷新</span>
+            </button>
+          </div>
+        </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Left Column - Burn Total & Blocks */}
@@ -124,7 +220,7 @@ export function BurnHistorySection() {
             >
               <h3 className="font-semibold mb-4">{t('burn.recentBlocks')}</h3>
               <div className="space-y-3">
-                {blocks.map((block) => (
+                {formattedBlocks.map((block) => (
                   <div
                     key={block.number}
                     className="flex items-center justify-between text-sm pb-3 border-b last:border-b-0"
@@ -197,14 +293,14 @@ export function BurnHistorySection() {
             </div>
 
             <div className="space-y-3">
-              {burnRankings.map((item, index) => (
+              {formattedRankings.map((item, index) => (
                 <div
                   key={index}
                   className="flex items-center justify-between p-3 rounded-lg hover:bg-muted/50 transition-colors"
                 >
                   <div className="flex items-center gap-3 flex-1 min-w-0">
                     <div className="flex-shrink-0">
-                      {item.name === 'Native Transfer' ? (
+                      {index === 0 ? (
                         <div className="w-8 h-8 rounded-full bg-blue-500/20 flex items-center justify-center">
                           <span className="text-sm">🔄</span>
                         </div>

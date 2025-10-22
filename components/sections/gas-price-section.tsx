@@ -4,7 +4,7 @@ import * as React from 'react'
 import { motion } from 'framer-motion'
 import { useTranslation } from 'react-i18next'
 import Image from 'next/image'
-import { Rocket, Zap, Activity, Turtle, ChevronDown } from 'lucide-react'
+import { Rocket, Zap, Activity, Turtle, ChevronDown, RefreshCw, AlertCircle } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Separator } from '@/components/ui/separator'
 import { 
@@ -13,6 +13,8 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
+import { useGasPrice } from '@/hooks/use-gas-data'
+import { SupportedChain } from '@/lib/request/types'
 
 /**
  * Gas Price Section - 实时Gas价格展示
@@ -23,6 +25,41 @@ export function GasPriceSection() {
   const [selectedCoin, setSelectedCoin] = React.useState('eth')
   const [eip1559Enabled, setEip1559Enabled] = React.useState(true)
   const [currency, setCurrency] = React.useState('USD')
+
+  // 获取当前选中的链
+  const currentChain = React.useMemo((): SupportedChain => {
+    const coinMap: Record<string, SupportedChain> = {
+      'eth': 'ethereum',
+      'bsc': 'bsc',
+      'polygon': 'polygon',
+      'arbitrum': 'arbitrum',
+      'base': 'base',
+      'op': 'optimism',
+    }
+    return coinMap[selectedCoin] || 'ethereum'
+  }, [selectedCoin])
+
+  // 获取实时Gas数据
+  const { 
+    data: gasData, 
+    isLoading: gasLoading, 
+    error: gasError,
+    refetch: refetchGas,
+    isFetching: gasFetching
+  } = useGasPrice(currentChain, {
+    refetchInterval: 5000, // 每5秒刷新
+  })
+
+  // 获取最新区块数据（暂时不使用，但保留以备将来扩展）
+  // const { 
+  //   data: blockData, 
+  //   isLoading: blockLoading, 
+  //   error: blockError 
+  // } = useLatestBlock(currentChain, {
+  //   refetchInterval: 12000, // 每12秒刷新
+  // })
+
+  // 币种配置列表，包含 chain id
 
   // 币种配置列表，包含 chain id
   const coins = [
@@ -78,62 +115,127 @@ export function GasPriceSection() {
 
   const selectedCoinData = coins.find(coin => coin.id === selectedCoin) || coins[0]
 
-  // Mock data - 实际应用中应该从API获取
-  const gasPrices = [
-    {
-      id: 'fastest',
-      icon: Rocket,
-      iconColor: 'text-green-500',
-      bgColor: 'from-green-500/20 to-green-600/20',
-      borderColor: 'border-green-500/50',
-      label: t('gas.speed.fastest'),
-      basePrice: '0.01',
-      maxPrice: '0.23',
-      gwei: '0.13',
-      usd: '$0.01',
-      time: '≈ 12秒',
-    },
-    {
-      id: 'fast',
-      icon: Zap,
-      iconColor: 'text-orange-500',
-      bgColor: 'from-orange-500/20 to-orange-600/20',
-      borderColor: 'border-orange-500',
-      label: t('gas.speed.fast'),
-      basePrice: '0.01',
-      maxPrice: '0.22',
-      gwei: '0.13',
-      usd: '$0.01',
-      time: '≈ 48秒',
-      featured: true,
-    },
-    {
-      id: 'normal',
-      icon: Activity,
-      iconColor: 'text-blue-500',
-      bgColor: 'from-blue-500/20 to-blue-600/20',
-      borderColor: 'border-blue-500/50',
-      label: t('gas.speed.normal'),
-      basePrice: '0.01',
-      maxPrice: '0.21',
-      gwei: '0.13',
-      usd: '$0.01',
-      time: '≈ 2分钟',
-    },
-    {
-      id: 'slow',
-      icon: Turtle,
-      iconColor: 'text-purple-500',
-      bgColor: 'from-purple-500/20 to-purple-600/20',
-      borderColor: 'border-purple-500/50',
-      label: t('gas.speed.slow'),
-      basePrice: '0.01',
-      maxPrice: '0.21',
-      gwei: '0.13',
-      usd: '$0.01',
-      time: '≈ 3分钟',
-    },
-  ]
+  // 计算Gas价格数据
+  const gasPrices = React.useMemo(() => {
+    if (!gasData) {
+      // 默认数据
+      return [
+        {
+          id: 'fastest',
+          icon: Rocket,
+          iconColor: 'text-green-500',
+          bgColor: 'from-green-500/20 to-green-600/20',
+          borderColor: 'border-green-500/50',
+          label: t('gas.speed.fastest'),
+          basePrice: '0.01',
+          maxPrice: '0.23',
+          gwei: '0.13',
+          usd: '$0.01',
+          time: '≈ 12秒',
+        },
+        {
+          id: 'fast',
+          icon: Zap,
+          iconColor: 'text-orange-500',
+          bgColor: 'from-orange-500/20 to-orange-600/20',
+          borderColor: 'border-orange-500',
+          label: t('gas.speed.fast'),
+          basePrice: '0.01',
+          maxPrice: '0.22',
+          gwei: '0.13',
+          usd: '$0.01',
+          time: '≈ 48秒',
+          featured: true,
+        },
+        {
+          id: 'normal',
+          icon: Activity,
+          iconColor: 'text-blue-500',
+          bgColor: 'from-blue-500/20 to-blue-600/20',
+          borderColor: 'border-blue-500/50',
+          label: t('gas.speed.normal'),
+          basePrice: '0.01',
+          maxPrice: '0.21',
+          gwei: '0.13',
+          usd: '$0.01',
+          time: '≈ 2分钟',
+        },
+        {
+          id: 'slow',
+          icon: Turtle,
+          iconColor: 'text-purple-500',
+          bgColor: 'from-purple-500/20 to-purple-600/20',
+          borderColor: 'border-purple-500/50',
+          label: t('gas.speed.slow'),
+          basePrice: '0.01',
+          maxPrice: '0.21',
+          gwei: '0.13',
+          usd: '$0.01',
+          time: '≈ 3分钟',
+        },
+      ]
+    }
+
+    // 使用实时数据
+    const formatGwei = (value: number) => value.toFixed(2)
+    const formatUsd = (value: number) => `$${value.toFixed(2)}`
+    
+    return [
+      {
+        id: 'fastest',
+        icon: Rocket,
+        iconColor: 'text-green-500',
+        bgColor: 'from-green-500/20 to-green-600/20',
+        borderColor: 'border-green-500/50',
+        label: t('gas.speed.fastest'),
+        basePrice: formatGwei(gasData.fast),
+        maxPrice: formatGwei(gasData.fast * 1.1),
+        gwei: formatGwei(gasData.fast),
+        usd: formatUsd(gasData.fast * 0.0001), // 假设1 Gwei = $0.0001
+        time: '≈ 12秒',
+      },
+      {
+        id: 'fast',
+        icon: Zap,
+        iconColor: 'text-orange-500',
+        bgColor: 'from-orange-500/20 to-orange-600/20',
+        borderColor: 'border-orange-500',
+        label: t('gas.speed.fast'),
+        basePrice: formatGwei(gasData.propose),
+        maxPrice: formatGwei(gasData.propose * 1.05),
+        gwei: formatGwei(gasData.propose),
+        usd: formatUsd(gasData.propose * 0.0001),
+        time: '≈ 48秒',
+        featured: true,
+      },
+      {
+        id: 'normal',
+        icon: Activity,
+        iconColor: 'text-blue-500',
+        bgColor: 'from-blue-500/20 to-blue-600/20',
+        borderColor: 'border-blue-500/50',
+        label: t('gas.speed.normal'),
+        basePrice: formatGwei(gasData.safe),
+        maxPrice: formatGwei(gasData.safe * 1.02),
+        gwei: formatGwei(gasData.safe),
+        usd: formatUsd(gasData.safe * 0.0001),
+        time: '≈ 2分钟',
+      },
+      {
+        id: 'slow',
+        icon: Turtle,
+        iconColor: 'text-purple-500',
+        bgColor: 'from-purple-500/20 to-purple-600/20',
+        borderColor: 'border-purple-500/50',
+        label: t('gas.speed.slow'),
+        basePrice: formatGwei(gasData.baseFee),
+        maxPrice: formatGwei(gasData.baseFee * 1.01),
+        gwei: formatGwei(gasData.baseFee),
+        usd: formatUsd(gasData.baseFee * 0.0001),
+        time: '≈ 3分钟',
+      },
+    ]
+  }, [gasData, t])
 
 
   return (
@@ -254,10 +356,57 @@ export function GasPriceSection() {
             <h1 className="text-4xl md:text-5xl font-bold">
               {selectedCoinData.name} {t('gas.title')}
             </h1>
+            
+            {/* 实时状态指示器 */}
+            <div className="flex items-center gap-2">
+              {gasLoading ? (
+                <motion.div
+                  animate={{ rotate: 360 }}
+                  transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
+                  className="text-blue-500"
+                >
+                  <RefreshCw className="h-5 w-5" />
+                </motion.div>
+              ) : gasError ? (
+                <AlertCircle className="h-5 w-5 text-red-500" />
+              ) : (
+                <motion.div
+                  animate={{ scale: [1, 1.2, 1] }}
+                  transition={{ duration: 2, repeat: Infinity }}
+                  className="w-3 h-3 bg-green-500 rounded-full"
+                />
+              )}
+              
+              {/* 手动刷新按钮 */}
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => refetchGas()}
+                disabled={gasFetching}
+                className="gap-2"
+              >
+                <RefreshCw className={`h-4 w-4 ${gasFetching ? 'animate-spin' : ''}`} />
+                <span className="hidden sm:inline">刷新</span>
+              </Button>
+            </div>
           </div>
+          
           <p className="text-lg text-muted-foreground">
             {selectedCoinData.chainName} • Chain ID: {selectedCoinData.chainId}
           </p>
+          
+          {/* 实时数据状态 */}
+          {gasData && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              className="mt-4 text-sm text-muted-foreground"
+            >
+              <span>最后更新: {new Date(gasData.timestamp).toLocaleTimeString()}</span>
+              <span className="mx-2">•</span>
+              <span>区块: #{gasData.lastBlock.toLocaleString()}</span>
+            </motion.div>
+          )}
         </motion.div>
 
         {/* Gas Price Cards */}
@@ -329,8 +478,30 @@ export function GasPriceSection() {
           </div>
           <div>
             <span className="mr-2">{t('gas.baseGasPrice')}:</span>
-            <span className="font-semibold text-foreground">0.13 Gwei</span>
+            <span className="font-semibold text-foreground">
+              {gasData ? `${gasData.baseFee.toFixed(2)} Gwei` : '0.13 Gwei'}
+            </span>
           </div>
+          {gasData && (
+            <>
+              <div>
+                <span className="mr-2">Gas使用率:</span>
+                <span className="font-semibold text-foreground">
+                  {(gasData.gasUsedRatio[0] * 100).toFixed(1)}%
+                </span>
+              </div>
+              <div>
+                <span className="mr-2">网络状态:</span>
+                <span className={`font-semibold ${
+                  gasData.gasUsedRatio[0] > 0.8 ? 'text-red-500' : 
+                  gasData.gasUsedRatio[0] > 0.6 ? 'text-yellow-500' : 'text-green-500'
+                }`}>
+                  {gasData.gasUsedRatio[0] > 0.8 ? '拥堵' : 
+                   gasData.gasUsedRatio[0] > 0.6 ? '繁忙' : '正常'}
+                </span>
+              </div>
+            </>
+          )}
         </motion.div>
       </div>
     </section>

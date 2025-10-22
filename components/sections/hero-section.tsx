@@ -83,12 +83,12 @@ export function HeroSection() {
       <div className="container mx-auto relative z-10">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
           {/* Left side - Content */}
-          <motion.div
+        <motion.div
             initial={{ opacity: 0, x: -50 }}
             animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.8 }}
-            className="space-y-8"
-          >
+          transition={{ duration: 0.8 }}
+          className="space-y-8"
+        >
             {/* Free Badge */}
             <motion.div
               initial={{ opacity: 0, scale: 0.8 }}
@@ -101,24 +101,24 @@ export function HeroSection() {
             </motion.div>
 
             {/* Main Title */}
-            <motion.h1
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
+          <motion.h1
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: 0.3 }}
               className="text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-bold tracking-tight leading-tight"
-            >
-              {t('hero.title')}
-            </motion.h1>
+          >
+            {t('hero.title')}
+          </motion.h1>
 
-            {/* Subtitle */}
-            <motion.p
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
+          {/* Subtitle */}
+          <motion.p
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: 0.4 }}
               className="text-lg md:text-xl text-muted-foreground leading-relaxed max-w-2xl"
-            >
-              {t('hero.subtitle')}
-            </motion.p>
+          >
+            {t('hero.subtitle')}
+          </motion.p>
 
             {/* Highlight Features */}
             <motion.div
@@ -138,20 +138,20 @@ export function HeroSection() {
               ))}
             </motion.div>
 
-            {/* CTA Button */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
+          {/* CTA Button */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: 0.6 }}
             >
               <Button 
                 size="lg" 
                 className="h-12 px-8 text-base font-medium bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 shadow-lg hover:shadow-xl transition-all"
               >
-                {t('hero.cta')}
-              </Button>
-            </motion.div>
+              {t('hero.cta')}
+            </Button>
           </motion.div>
+        </motion.div>
 
           {/* Right side - Enhanced Illustration */}
           <motion.div
@@ -364,23 +364,23 @@ export function HeroSection() {
       </div>
 
       {/* Enhanced Background gradient orbs */}
-      <motion.div
+        <motion.div
         className="absolute top-1/4 left-0 w-96 h-96 bg-orange-500/10 rounded-full blur-3xl"
-        animate={{
+          animate={{
           x: [0, 50, 0],
-          scale: [1, 1.2, 1],
-        }}
-        transition={{
+            scale: [1, 1.2, 1],
+          }}
+          transition={{
           duration: 15,
-          repeat: Infinity,
-          ease: 'easeInOut',
-        }}
-      />
-      <motion.div
+            repeat: Infinity,
+            ease: 'easeInOut',
+          }}
+        />
+        <motion.div
         className="absolute bottom-0 right-0 w-96 h-96 bg-blue-500/10 rounded-full blur-3xl"
-        animate={{
+          animate={{
           x: [0, -50, 0],
-          scale: [1.2, 1, 1.2],
+            scale: [1.2, 1, 1.2],
         }}
         transition={{
           duration: 18,
@@ -393,13 +393,13 @@ export function HeroSection() {
         animate={{
           y: [0, -30, 0],
           scale: [1, 1.15, 1],
-        }}
-        transition={{
+          }}
+          transition={{
           duration: 12,
-          repeat: Infinity,
-          ease: 'easeInOut',
-        }}
-      />
+            repeat: Infinity,
+            ease: 'easeInOut',
+          }}
+        />
     </section>
   )
 }
