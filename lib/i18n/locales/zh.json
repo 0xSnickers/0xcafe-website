@@ -101,7 +101,10 @@
       "fastest": "极速",
       "fast": "快速",
       "normal": "正常",
-      "slow": "缓慢"
+      "slow": "缓慢",
+      "low": "低速",
+      "average": "中速",
+      "high": "高速"
     },
     "basePrice": "优先费用",
     "maxPrice": "最大费用",

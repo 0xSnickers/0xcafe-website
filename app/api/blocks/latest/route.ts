@@ -1,24 +1,13 @@
 /**
- * 总燃烧量 API 路由
- * 计算指定时间段的总燃烧量和燃烧率，支持历史趋势数据
+ * 最新区块 API 路由
+ * 获取最新的区块列表，包含燃烧数据
  */
 
 import { NextRequest, NextResponse } from 'next/server'
 import { makeHttpsRequest } from '@/lib/https-request'
 
-const ETHERSCAN_API_KEY = process.env.ETHERSCAN_API_KEY || 'X9S3IXSVZ8W7P8D1EJV42KNMBG9I6PH6MX'
+const ETHERSCAN_API_KEY = process.env.ETHERSCAN_API_KEY || process.env.NEXT_PUBLIC_ETHERSCAN_API_KEY || 'X9S3IXSVZ8W7P8D1EJV42KNMBG9I6PH6MX'
 const ETHERSCAN_BASE_URL = 'https://api.etherscan.io/v2/api'
-
-// 支持的时间段（毫秒）
-const PERIODS = {
-  '30s': 30 * 1000,
-  '1m': 60 * 1000,
-  '5m': 5 * 60 * 1000,
-  '1h': 60 * 60 * 1000,
-  '1d': 24 * 60 * 60 * 1000,
-  '7d': 7 * 24 * 60 * 60 * 1000,
-  '30d': 30 * 24 * 60 * 60 * 1000,
-} as const
 
 // 支持的链 ID
 const SUPPORTED_CHAIN_IDS = ['1', '56', '137', '42161', '8453', '10']
@@ -27,8 +16,7 @@ export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url)
     const chainId = searchParams.get('chainid') || '1'
-    const period = searchParams.get('period') || '5m'
-    const includeTrend = searchParams.get('trend') === 'true'
+    const limit = parseInt(searchParams.get('limit') || '10', 10)
 
     // 验证参数
     if (!SUPPORTED_CHAIN_IDS.includes(chainId)) {
@@ -42,12 +30,12 @@ export async function GET(request: NextRequest) {
       )
     }
 
-    if (!(period in PERIODS)) {
+    if (limit < 1 || limit > 50) {
       return NextResponse.json(
         {
           status: '0',
-          error: 'Invalid period',
-          message: `Period must be one of: ${Object.keys(PERIODS).join(', ')}`
+          error: 'Invalid limit',
+          message: 'Limit must be between 1 and 50'
         },
         { status: 400 }
       )
@@ -67,17 +55,12 @@ export async function GET(request: NextRequest) {
     }
 
     const latestBlockNumber = parseInt(latestBlockResponse.result, 16)
-    const periodMs = PERIODS[period as keyof typeof PERIODS]
-    
-    // 估算需要获取的区块数量（假设12秒一个区块）
-    const estimatedBlocks = Math.ceil(periodMs / 12000)
-    const blocksToFetch = Math.min(estimatedBlocks, 100) // 最多获取100个区块
 
-    // 获取区块数据
+    // 获取最近的 N 个区块
     const blocks = []
     const fetchPromises = []
 
-    for (let i = 0; i < blocksToFetch; i++) {
+    for (let i = 0; i < limit; i++) {
       const blockNumber = '0x' + (latestBlockNumber - i).toString(16)
 
       const blockUrl = new URL(ETHERSCAN_BASE_URL)
@@ -100,90 +83,41 @@ export async function GET(request: NextRequest) {
     const blockResults = await Promise.all(fetchPromises)
 
     // 处理区块数据
-    let totalBurned = 0
-    let totalGasUsed = 0
-    let totalGasLimit = 0
-    const currentTime = Date.now()
-    const trendData: Array<{ time: string; value: string; timestamp: number }> = []
-
     for (const { blockNumber, data } of blockResults) {
       if (!data) continue
 
       const baseFeePerGas = parseInt(data.baseFeePerGas || '0x0', 16)
       const gasUsed = parseInt(data.gasUsed || '0x0', 16)
       const gasLimit = parseInt(data.gasLimit || '0x0', 16)
-      const timestamp = parseInt(data.timestamp || '0x0', 16) * 1000
-
-      // 检查是否在指定时间段内
-      if (currentTime - timestamp > periodMs) {
-        continue
-      }
+      const timestamp = parseInt(data.timestamp || '0x0', 16)
 
       // 计算燃烧量 (baseFee * gasUsed)
       const burntFees = (baseFeePerGas * gasUsed) / 1e18 // 转换为 ETH
-      totalBurned += burntFees
-      totalGasUsed += gasUsed
-      totalGasLimit += gasLimit
 
-      // 收集趋势数据（每5分钟一个点）
-      if (includeTrend && blocks.length % 25 === 0) { // 大约每5分钟（25个区块）
-        const timeStr = new Date(timestamp).toLocaleTimeString('en-US', { 
-          hour12: false, 
-          hour: '2-digit', 
-          minute: '2-digit' 
-        })
-        trendData.push({
-          time: timeStr,
-          value: burntFees.toFixed(6),
-          timestamp
-        })
-      }
+      // 计算 Gas 使用率
+      const gasUsedPercent = gasLimit > 0 ? (gasUsed / gasLimit) * 100 : 0
 
       blocks.push({
-        blockNumber,
-        timestamp,
+        number: blockNumber,
+        timestamp: timestamp * 1000, // 转换为毫秒
         baseFeePerGas: baseFeePerGas / 1e9, // 转换为 Gwei
         gasUsed,
         gasLimit,
-        burned: burntFees.toFixed(6),
+        gasUsedPercent: gasUsedPercent.toFixed(2),
+        burntFees: burntFees.toFixed(6),
         transactionCount: Array.isArray(data.transactions) ? data.transactions.length : 0,
       })
     }
 
-    // 计算燃烧率 (ETH per minute)
-    const burnRate = periodMs > 0 ? (totalBurned * 60000) / periodMs : 0
-
-    // 计算平均Gas使用率
-    const avgGasUsedPercent = totalGasLimit > 0 ? (totalGasUsed / totalGasLimit) * 100 : 0
-
-    // 计算平均区块燃烧量
-    const avgBurnPerBlock = blocks.length > 0 ? totalBurned / blocks.length : 0
-
-    // 趋势数据排序（按时间倒序）
-    trendData.sort((a, b) => b.timestamp - a.timestamp)
-
-    const result: any = {
-      period,
-      totalBurned: totalBurned.toFixed(6),
-      burnRate: burnRate.toFixed(6),
-      avgBurnPerBlock: avgBurnPerBlock.toFixed(6),
-      avgGasUsedPercent: avgGasUsedPercent.toFixed(2),
-      blockCount: blocks.length,
-      totalGasUsed: totalGasUsed.toLocaleString(),
-      totalGasLimit: totalGasLimit.toLocaleString(),
-      timestamp: Date.now(),
-    }
-
-    // 如果需要趋势数据，添加到结果中
-    if (includeTrend) {
-      result.trend = trendData.slice(0, 20) // 最多返回20个数据点
-    }
+    // 按区块号降序排序
+    blocks.sort((a, b) => b.number - a.number)
 
     return NextResponse.json(
       {
         status: '1',
         message: 'OK',
-        result,
+        result: blocks,
+        timestamp: Date.now(),
       },
       {
         status: 200,
@@ -196,7 +130,7 @@ export async function GET(request: NextRequest) {
       }
     )
   } catch (error) {
-    console.error('[Total Burned API Error]:', {
+    console.error('[Latest Blocks API Error]:', {
       message: error instanceof Error ? error.message : 'Unknown error',
       timestamp: new Date().toISOString(),
     })
@@ -204,7 +138,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json(
       {
         status: '0',
-        error: 'Failed to fetch total burned data',
+        error: 'Failed to fetch latest blocks',
         message: error instanceof Error ? error.message : 'Unknown error',
         timestamp: new Date().toISOString(),
       },
@@ -224,8 +158,8 @@ export async function OPTIONS() {
     status: 200,
     headers: {
       'Access-Control-Allow-Origin': '*',
-      'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
-      'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+      'Access-Control-Allow-Methods': 'GET, OPTIONS',
+      'Access-Control-Allow-Headers': 'Content-Type',
     },
   })
 }

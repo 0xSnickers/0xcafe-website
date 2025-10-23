@@ -101,7 +101,10 @@
       "fastest": "Fastest",
       "fast": "Fast",
       "normal": "Normal",
-      "slow": "Slow"
+      "slow": "Slow",
+      "low": "Low",
+      "average": "Average",
+      "high": "High"
     },
     "basePrice": "Base Price",
     "maxPrice": "Max Price",

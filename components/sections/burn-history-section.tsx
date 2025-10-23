@@ -4,7 +4,7 @@ import * as React from 'react'
 import { motion } from 'framer-motion'
 import { useTranslation } from 'react-i18next'
 import { Flame, Crown, RefreshCw, AlertCircle } from 'lucide-react'
-import { useBurnHistory, useBurnRanking, useTotalBurned } from '@/hooks/use-gas-data'
+import { useBurnHistory, useBurnRanking, useTotalBurned, useBurnCategories } from '@/hooks/use-gas-data'
 
 /**
  * Burn History Section - 燃烧记录展示
@@ -12,167 +12,211 @@ import { useBurnHistory, useBurnRanking, useTotalBurned } from '@/hooks/use-gas-
  */
 export function BurnHistorySection() {
   const { t } = useTranslation()
-  const [selectedPeriod, setSelectedPeriod] = React.useState('5m')
+  const [selectedPeriod, setSelectedPeriod] = React.useState('1h')
   // const [selectedChain, setSelectedChain] = React.useState<SupportedChain>('ethereum')
 
   const periods = [
-    { id: '30s', label: '30s' },
-    { id: '1m', label: '1m' },
-    { id: '5m', label: '5m' },
     { id: '1h', label: '1h' },
     { id: '1d', label: '1d' },
     { id: '7d', label: '7d' },
     { id: '30d', label: '30d' },
   ]
 
-  // 获取燃烧历史数据
-  const { 
-    data: burnHistory, 
-    isLoading: historyLoading, 
+  // 获取燃烧历史数据 - 手动刷新
+  const {
+    data: burnHistory,
+    isLoading: historyLoading,
     error: historyError,
     refetch: refetchHistory
-  } = useBurnHistory('ethereum', 100, {
-    refetchInterval: 60000, // 1分钟刷新
+  } = useBurnHistory('ethereum', 6, selectedPeriod, {
+    refetchInterval: 0, // 禁用自动刷新
+    enabled: false, // 默认不自动加载
   })
 
-  // 获取燃烧排行榜
-  const { 
-    data: burnRankings, 
-    isLoading: rankingLoading, 
+  // 获取燃烧排行榜 - 手动刷新
+  const {
+    data: burnRankings,
+    isLoading: rankingLoading,
     error: rankingError,
     refetch: refetchRanking
-  } = useBurnRanking('ethereum', 50, {
-    refetchInterval: 300000, // 5分钟刷新
+  } = useBurnRanking('ethereum', 8, selectedPeriod, {
+    refetchInterval: 0, // 禁用自动刷新
+    enabled: false, // 默认不自动加载
   })
 
-  // 获取燃烧总量
-  const { 
-    data: totalBurned, 
-    isLoading: totalLoading, 
-    error: totalError 
-  } = useTotalBurned('ethereum', {
-    refetchInterval: 300000, // 5分钟刷新
+  // 获取燃烧总量 - 手动刷新
+  const {
+    data: totalBurned,
+    isLoading: totalLoading,
+    error: totalError,
+    refetch: refetchTotal
+  } = useTotalBurned('ethereum', selectedPeriod, {
+    refetchInterval: 0, // 禁用自动刷新
+    enabled: false, // 默认不自动加载
   })
+
+  // 获取燃烧类别数据 - 手动刷新
+  const {
+    data: burnCategories,
+    isLoading: categoriesLoading,
+    error: categoriesError,
+    refetch: refetchCategories
+  } = useBurnCategories('ethereum', 7, {
+    refetchInterval: 0, // 禁用自动刷新
+    enabled: false, // 默认不自动加载
+  })
+
+  // 当时间段改变时，重新获取数据
+  React.useEffect(() => {
+    refetchHistory()
+    refetchRanking()
+    refetchTotal()
+    refetchCategories()
+  }, [selectedPeriod, refetchHistory, refetchRanking, refetchTotal, refetchCategories])
 
   // 计算燃烧总量数据
   const burnTotalData = React.useMemo(() => {
     if (!totalBurned) {
-      return { amount: '0.076', rate: '0.152' }
+      return { amount: '0.076', rate: '0.152', avgBurnPerBlock: '0.005', avgGasUsedPercent: '85.2' }
     }
     
     return {
-      amount: totalBurned.toFixed(3),
-      rate: (totalBurned * 0.02).toFixed(3), // 假设燃烧率
+      amount: totalBurned.totalBurnedFormatted,
+      rate: totalBurned.burnRateFormatted,
+      avgBurnPerBlock: totalBurned.avgBurnPerBlock.toFixed(6),
+      avgGasUsedPercent: totalBurned.avgGasUsedPercent.toFixed(2),
     }
   }, [totalBurned])
 
-  // 格式化燃烧历史数据
+  // 格式化燃烧历史数据 - 简化版本
   const formattedBlocks = React.useMemo(() => {
-    if (!burnHistory) {
+    if (!burnHistory || !Array.isArray(burnHistory)) {
       return [
-        { number: '#23,603,056', gas: '0.116', burned: '0.005' },
-        { number: '#23,603,055', gas: '0.122', burned: '0.002' },
-        { number: '#23,603,054', gas: '0.124', burned: '0.002' },
-        { number: '#23,603,053', gas: '0.124', burned: '0.003' },
-        { number: '#23,603,052', gas: '0.128', burned: '0.002' },
-        { number: '#23,603,051', gas: '0.129', burned: '0.003' },
+        { number: '#23,603,056', gas: '12.5', burned: '0.005' },
+        { number: '#23,603,055', gas: '12.2', burned: '0.004' },
+        { number: '#23,603,054', gas: '12.4', burned: '0.003' },
+        { number: '#23,603,053', gas: '12.1', burned: '0.004' },
+        { number: '#23,603,052', gas: '12.8', burned: '0.002' },
+        { number: '#23,603,051', gas: '12.9', burned: '0.003' },
       ]
     }
 
-    return burnHistory.slice(0, 6).map((block, _index) => ({
+    return burnHistory.slice(0, 6).map((block) => ({
       number: `#${block.blockNumber.toLocaleString()}`,
-      gas: (block.burned * 20).toFixed(3), // 假设gas价格
-      burned: block.burned.toFixed(3),
+      gas: block.baseFeePerGas.toFixed(1),
+      burned: block.burned,
     }))
   }, [burnHistory])
 
-  // 格式化燃烧排行榜数据
+  // 格式化燃烧排行榜数据 - 优化版本
   const formattedRankings = React.useMemo(() => {
-    if (!burnRankings) {
+    if (!burnRankings || !Array.isArray(burnRankings)) {
       return [
-        { name: 'Native Transfer', burned: '0.006', time: '5m' },
-        { name: 'Tether: USDT Stablecoin', tag: 'DEFI', burned: '0.005', time: '5m' },
-        { name: 'XEN Batch Minter', tag: 'XEN', burned: '0.004', time: '5m' },
-        { name: 'Uniswap V2: Router 2', tag: 'DEFI', burned: '0.003', time: '5m' },
-        { name: 'USDC', tag: 'DEFI', burned: '0.002', time: '5m' },
-        { name: 'Okex: Dex Router', tag: 'DEFI', burned: '0.001', time: '5m' },
-        { name: 'Binance: Dex Router', tag: 'DEFI', burned: '0.001', time: '5m' },
-        { name: 'New Contract', burned: '0.001', time: '5m' },
+        { name: 'Uniswap V2', burnedETH: '0.006', burnedUSD: '15.00', percentage: '12.5%', tag: 'DEFI' },
+        { name: 'Tether USDT', burnedETH: '0.005', burnedUSD: '12.50', percentage: '10.4%', tag: 'STABLECOIN' },
+        { name: 'Binance', burnedETH: '0.004', burnedUSD: '10.00', percentage: '8.3%', tag: 'EXCHANGE' },
+        { name: 'USDC', burnedETH: '0.003', burnedUSD: '7.50', percentage: '6.3%', tag: 'STABLECOIN' },
+        { name: 'OpenSea', burnedETH: '0.002', burnedUSD: '5.00', percentage: '4.2%', tag: 'NFT' },
+        { name: '1inch', burnedETH: '0.002', burnedUSD: '5.00', percentage: '4.2%', tag: 'DEFI' },
+        { name: 'SushiSwap', burnedETH: '0.001', burnedUSD: '2.50', percentage: '2.1%', tag: 'DEFI' },
+        { name: 'CoW Protocol', burnedETH: '0.001', burnedUSD: '2.50', percentage: '2.1%', tag: 'MEV' },
       ]
     }
 
-    return burnRankings.slice(0, 8).map((ranking, index) => ({
-      name: `Address ${ranking.address.slice(0, 8)}...`,
-      burned: ranking.burned.toFixed(3),
-      time: '5m',
-      tag: index < 3 ? 'DEFI' : undefined,
+    return burnRankings.slice(0, 8).map((ranking) => ({
+      name: ranking.name,
+      burnedETH: ranking.burnedETH,
+      burnedUSD: ranking.burnedUSD,
+      percentage: `${ranking.percentage}%`,
+      tag: ranking.category,
     }))
   }, [burnRankings])
 
-  const burnCategories = [
-    { name: 'DEFI', burned: '0.021' },
-    { name: 'XEN', burned: '0.005' },
-    { name: 'MEV', burned: '0.003' },
-    { name: 'NFT', burned: '0.001' },
-    { name: 'L2', burned: '0' },
-  ]
+  // 格式化燃烧类别数据 - 简化版本
+  const formattedCategories = React.useMemo(() => {
+    if (!burnCategories || !Array.isArray(burnCategories)) {
+      return [
+        { name: 'DEFI', burned: '0.021', percentage: '27.6%', transactionCount: 45, uniqueAddresses: 12 },
+        { name: 'STABLECOIN', burned: '0.015', percentage: '19.7%', transactionCount: 32, uniqueAddresses: 8 },
+        { name: 'EXCHANGE', burned: '0.012', percentage: '15.8%', transactionCount: 28, uniqueAddresses: 6 },
+        { name: 'MEV', burned: '0.008', percentage: '10.5%', transactionCount: 18, uniqueAddresses: 4 },
+        { name: 'NFT', burned: '0.005', percentage: '6.6%', transactionCount: 12, uniqueAddresses: 3 },
+        { name: 'L2', burned: '0.003', percentage: '3.9%', transactionCount: 8, uniqueAddresses: 2 },
+        { name: 'OTHER', burned: '0.012', percentage: '15.8%', transactionCount: 25, uniqueAddresses: 15 },
+      ]
+    }
+
+    return burnCategories.map(category => ({
+      name: category.category,
+      burned: category.burned,
+      percentage: `${category.percentage}%`,
+      transactionCount: category.transactionCount,
+      uniqueAddresses: category.uniqueAddresses,
+    }))
+  }, [burnCategories])
 
   return (
     <section className="py-12 px-4 bg-muted/30">
       <div className="container mx-auto max-w-7xl">
-        {/* Period Selector */}
-        <div className="flex items-center gap-2 mb-8">
-          <span className="text-sm font-medium mr-2">{t('burn.period')}:</span>
-          {periods.map((period) => (
-            <button
-              key={period.id}
-              onClick={() => setSelectedPeriod(period.id)}
-              className={`px-4 py-1.5 rounded-lg text-sm font-medium transition-colors ${
-                selectedPeriod === period.id
-                  ? 'bg-primary text-primary-foreground'
-                  : 'bg-background hover:bg-muted'
-              }`}
-            >
-              {period.label}
-            </button>
-          ))}
-        </div>
-
         <div className="flex items-center justify-between mb-8">
           <h2 className="text-3xl font-bold">{t('burn.title')}</h2>
           
-          {/* 实时状态指示器 */}
-          <div className="flex items-center gap-2">
-            {historyLoading || rankingLoading || totalLoading ? (
-              <motion.div
-                animate={{ rotate: 360 }}
-                transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
-                className="text-blue-500"
+          {/* 控制区域 */}
+          <div className="flex items-center gap-4">
+            {/* 时间间隔选择器 */}
+            <div className="flex items-center gap-2">
+              <span className="text-sm font-medium text-muted-foreground">{t('burn.period')}:</span>
+              {periods.map((period) => (
+                <button
+                  key={period.id}
+                  onClick={() => setSelectedPeriod(period.id)}
+                  className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
+                    selectedPeriod === period.id
+                      ? 'bg-primary text-primary-foreground'
+                      : 'bg-background hover:bg-muted'
+                  }`}
+                >
+                  {period.label}
+                </button>
+              ))}
+            </div>
+
+            {/* 实时状态指示器 */}
+            <div className="flex items-center gap-2">
+              {/* 状态指示 */}
+              {historyLoading || rankingLoading || totalLoading || categoriesLoading ? (
+                <motion.div
+                  animate={{ rotate: 360 }}
+                  transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
+                  className="text-blue-500"
+                >
+                  <RefreshCw className="h-5 w-5" />
+                </motion.div>
+              ) : historyError || rankingError || totalError || categoriesError ? (
+                <AlertCircle className="h-5 w-5 text-red-500" />
+              ) : (
+                <motion.div
+                  animate={{ scale: [1, 1.2, 1] }}
+                  transition={{ duration: 2, repeat: Infinity }}
+                  className="w-3 h-3 bg-green-500 rounded-full"
+                />
+              )}
+
+              {/* 手动刷新按钮 - 只显示图标 */}
+              <button
+                onClick={() => {
+                  refetchHistory()
+                  refetchRanking()
+                  refetchTotal()
+                  refetchCategories()
+                }}
+                disabled={historyLoading || rankingLoading || totalLoading || categoriesLoading}
+                className="flex items-center justify-center w-8 h-8 bg-background hover:bg-muted rounded-lg transition-colors disabled:opacity-50"
+                title="刷新数据"
               >
-                <RefreshCw className="h-5 w-5" />
-              </motion.div>
-            ) : historyError || rankingError || totalError ? (
-              <AlertCircle className="h-5 w-5 text-red-500" />
-            ) : (
-              <motion.div
-                animate={{ scale: [1, 1.2, 1] }}
-                transition={{ duration: 2, repeat: Infinity }}
-                className="w-3 h-3 bg-green-500 rounded-full"
-              />
-            )}
-            
-            {/* 手动刷新按钮 */}
-            <button
-              onClick={() => {
-                refetchHistory()
-                refetchRanking()
-              }}
-              disabled={historyLoading || rankingLoading}
-              className="flex items-center gap-2 px-3 py-1.5 text-sm bg-background hover:bg-muted rounded-lg transition-colors disabled:opacity-50"
-            >
-              <RefreshCw className={`h-4 w-4 ${(historyLoading || rankingLoading) ? 'animate-spin' : ''}`} />
-              <span>刷新</span>
-            </button>
+                <RefreshCw className={`h-4 w-4 ${(historyLoading || rankingLoading || totalLoading || categoriesLoading) ? 'animate-spin' : ''}`} />
+              </button>
+            </div>
           </div>
         </div>
 
@@ -320,7 +364,9 @@ export function BurnHistorySection() {
                     </div>
                   </div>
                   <div className="text-right flex-shrink-0">
-                    <div className="font-semibold text-sm">{item.burned} ETH</div>
+                    <div className="font-semibold text-sm">{item.burnedETH} ETH</div>
+                    <div className="text-xs text-muted-foreground">${item.burnedUSD}</div>
+                    <div className="text-xs text-blue-500">{item.percentage}</div>
                   </div>
                 </div>
               ))}
@@ -342,7 +388,7 @@ export function BurnHistorySection() {
             </div>
 
             <div className="space-y-4">
-              {burnCategories.map((category, index) => (
+              {formattedCategories.map((category, index) => (
                 <div key={category.name} className="space-y-2">
                   <div className="flex items-center justify-between">
                     <span className="font-medium">{category.name}</span>
@@ -351,10 +397,14 @@ export function BurnHistorySection() {
                   <div className="w-full h-2 bg-muted rounded-full overflow-hidden">
                     <motion.div
                       initial={{ width: 0 }}
-                      animate={{ width: `${(parseFloat(category.burned) / 0.03) * 100}%` }}
+                      animate={{ width: category.percentage }}
                       transition={{ delay: 0.3 + index * 0.1, duration: 0.5 }}
                       className="h-full bg-gradient-to-r from-orange-500 to-orange-600 rounded-full"
                     />
+                  </div>
+                  <div className="flex justify-between text-xs text-muted-foreground">
+                    <span>{category.transactionCount} 笔交易</span>
+                    <span>{category.uniqueAddresses} 个地址</span>
                   </div>
                 </div>
               ))}
