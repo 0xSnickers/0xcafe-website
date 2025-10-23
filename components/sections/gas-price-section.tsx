@@ -14,17 +14,18 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { useGasPrice } from '@/hooks/use-gas-data'
-import { SupportedChain } from '@/lib/request/types'
+import { SupportedChain, getAllChains, ChainConfig } from '@/lib'
 
-// 币种配置
-const COINS = [
-  { id: 'eth', name: 'Ethereum', symbol: 'ETH', image: '/coins/eth.png', chainId: 1, chainName: 'Ethereum Mainnet' },
-  { id: 'bsc', name: 'BSC', symbol: 'BNB', image: '/coins/bsc.png', chainId: 56, chainName: 'BSC Mainnet' },
-  { id: 'polygon', name: 'Polygon', symbol: 'MATIC', image: '/coins/polygon.png', chainId: 137, chainName: 'Polygon Mainnet' },
-  { id: 'arbitrum', name: 'Arbitrum', symbol: 'ETH', image: '/coins/arbitrum.png', chainId: 42161, chainName: 'Arbitrum One' },
-  { id: 'base', name: 'Base', symbol: 'ETH', image: '/coins/base.png', chainId: 8453, chainName: 'Base Mainnet' },
-  { id: 'op', name: 'Optimism', symbol: 'ETH', image: '/coins/op.png', chainId: 10, chainName: 'Optimism Mainnet' },
-] as const
+const CHAIN_CONFIGS = getAllChains()
+
+const COINS = CHAIN_CONFIGS.map((config: ChainConfig) => ({
+  id: config.name.toLowerCase().replace(' ', ''),
+  name: config.name,
+  symbol: config.symbol,
+  image: config.icon,
+  chainId: config.id,
+  chainName: `${config.name} Mainnet`,
+}))
 
 // Gas 价格档位配置 - 简化为 3 档
 const GAS_TIERS = [

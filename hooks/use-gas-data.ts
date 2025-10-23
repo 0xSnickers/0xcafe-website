@@ -7,7 +7,7 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { createGasApiService } from '@/services/gas-api'
 import { createBlocksApiService } from '@/services/blocks-api'
-import { SupportedChain } from '@/lib/request/types'
+import { SupportedChain } from '@/lib'
 
 /**
  * Gas 数据查询键

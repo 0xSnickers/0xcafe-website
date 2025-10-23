@@ -1,297 +1,63 @@
 /**
- * 燃烧排名 API 路由 - 优化版本
- * 分析区块中的交易地址，按燃烧量排序，支持时间段统计和费用占比计算
- * 参考 mct.xyz/gasnow 的实现方式
+ * 燃烧排名 API 路由
+ * 使用统一的 HTTP 模块
  */
 
-import { NextRequest, NextResponse } from 'next/server'
-import { makeHttpsRequest } from '@/lib/https-request'
-
-const ETHERSCAN_API_KEY = process.env.ETHERSCAN_API_KEY || 'X9S3IXSVZ8W7P8D1EJV42KNMBG9I6PH6MX'
-const ETHERSCAN_BASE_URL = 'https://api.etherscan.io/v2/api'
-
-// 支持的链 ID
-const SUPPORTED_CHAIN_IDS = ['1', '56', '137', '42161', '8453', '10']
-
-// 时间段配置（分钟）
-const TIME_PERIODS = {
-  '3h': 180,    // 3小时
-  '24h': 1440,  // 24小时
-  '7d': 10080,  // 7天
-} as const
-
-// 已知的合约地址分类
-const CONTRACT_CATEGORIES = {
-  // DeFi 协议
-  '0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D': { name: 'Uniswap V2: Router 2', category: 'DEFI' },
-  '0xE592427A0AEce92De3Edee1F18E0157C05861564': { name: 'Uniswap V3: Router', category: 'DEFI' },
-  '0x68b3465833fb72A70ecDF485E0e4C7bD8665Fc45': { name: 'Uniswap V3: Router 2', category: 'DEFI' },
-  '0xd9e1cE17f2641f24aE83637ab66a2cca9C378B9F': { name: 'SushiSwap: Router', category: 'DEFI' },
-  '0x1b02dA8Cb0d097eB8D57A175b88c7D8b47997506': { name: 'SushiSwap: Router 2', category: 'DEFI' },
-  '0x1111111254EEB25477B68fb85Ed929f73A960582': { name: '1inch: Router', category: 'DEFI' },
-  '0x1111111254fb6c44bAC0beD2854e76F90643097d': { name: '1inch: Router 2', category: 'DEFI' },
-  
-  // 稳定币
-  '0xdAC17F958D2ee523a2206206994597C13D831ec7': { name: 'Tether: USDT Stablecoin', category: 'STABLECOIN' },
-  '0xA0b86a33E6441b8c4C8C0E4A0e8A0e8A0e8A0e8A': { name: 'USDC', category: 'STABLECOIN' },
-  
-  // NFT 市场
-  '0x7Be8076f4EA4A4AD08075C2508e481d6C946D12b': { name: 'OpenSea: Seaport', category: 'NFT' },
-  '0x00000000000000ADc04C56Bf30aC9d3c0aAF14dC': { name: 'OpenSea: Seaport 1.1', category: 'NFT' },
-  
-  // MEV 相关
-  '0x9008D19f58AAbD9eD0D60971565AA8510560ab41': { name: 'CoW Protocol: Settlement', category: 'MEV' },
-  '0x3b66e1dC4F6C5c8C0E4A0e8A0e8A0e8A0e8A0e8A': { name: 'Flashbots: MEV-Boost', category: 'MEV' },
-  
-  // 交易所
-  '0x3f5CE5FBFe3E9af3971dD833D26bA9b5C936f0bE': { name: 'Binance: Hot Wallet', category: 'EXCHANGE' },
-  '0x28C6c06298d514Db089934071355E5743bf21d60': { name: 'Binance: Cold Wallet', category: 'EXCHANGE' },
-  '0x56Eddb7aa87536c09CCc2793473599fD21A8b17F': { name: 'Binance: Dex Router', category: 'EXCHANGE' },
-  '0x3cd751E6b0078Be393132286c442345e5DC49699': { name: 'Okex: Dex Router', category: 'EXCHANGE' },
-} as const
-
-// 获取ETH价格（简化版本，实际应用中应该使用更可靠的API）
-async function getETHPrice(): Promise<number> {
-  try {
-    // 这里可以使用 CoinGecko、CoinMarketCap 等API
-    // 为了简化，使用一个固定的价格
-    return 2500 // USD
-  } catch (error) {
-    console.error('Failed to get ETH price:', error)
-    return 2500 // 默认价格
-  }
-}
+import { NextRequest } from 'next/server'
+import { 
+  BurnDataApiService, 
+  successResponse, 
+  errorResponse, 
+  handleApiError,
+  handleOptionsRequest,
+  validateChainId,
+  validatePeriod,
+  validateLimit,
+  SUPPORTED_CHAIN_IDS,
+  PERIODS 
+} from '@/backend/http'
 
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url)
     const chainId = searchParams.get('chainid') || '1'
+    const period = searchParams.get('period') || '3h'
     const limit = parseInt(searchParams.get('limit') || '50', 10)
-    const period = searchParams.get('period') || '3h' // 默认3小时
 
     // 验证参数
-    if (!SUPPORTED_CHAIN_IDS.includes(chainId)) {
-      return NextResponse.json(
-        {
-          status: '0',
-          error: 'Invalid chain ID',
-          message: `Chain ID must be one of: ${SUPPORTED_CHAIN_IDS.join(', ')}`
-        },
-        { status: 400 }
+    if (!validateChainId(chainId, SUPPORTED_CHAIN_IDS)) {
+      return errorResponse(
+        `Invalid chain ID. Must be one of: ${SUPPORTED_CHAIN_IDS.join(', ')}`,
+        'Validation Error',
+        400
       )
     }
 
-    if (limit < 1 || limit > 100) {
-      return NextResponse.json(
-        {
-          status: '0',
-          error: 'Invalid limit',
-          message: 'Limit must be between 1 and 100'
-        },
-        { status: 400 }
+    if (!validatePeriod(period, PERIODS)) {
+      return errorResponse(
+        `Invalid period. Must be one of: ${Object.keys(PERIODS).join(', ')}`,
+        'Validation Error',
+        400
       )
     }
 
-    if (!(period in TIME_PERIODS)) {
-      return NextResponse.json(
-        {
-          status: '0',
-          error: 'Invalid period',
-          message: `Period must be one of: ${Object.keys(TIME_PERIODS).join(', ')}`
-        },
-        { status: 400 }
+    if (!validateLimit(limit, 1, 100)) {
+      return errorResponse(
+        'Invalid limit. Must be between 1 and 100',
+        'Validation Error',
+        400
       )
     }
 
-    // 获取ETH价格
-    const ethPrice = await getETHPrice()
+    // 使用统一服务获取燃烧排名
+    const ranking = await BurnDataApiService.getBurnRanking(chainId, limit, period)
 
-    // 获取最新区块号
-    const latestBlockUrl = new URL(ETHERSCAN_BASE_URL)
-    latestBlockUrl.searchParams.set('chainid', chainId)
-    latestBlockUrl.searchParams.set('module', 'proxy')
-    latestBlockUrl.searchParams.set('action', 'eth_blockNumber')
-    latestBlockUrl.searchParams.set('apikey', ETHERSCAN_API_KEY)
-
-    const latestBlockResponse = await makeHttpsRequest(latestBlockUrl.toString())
-
-    if (!latestBlockResponse || !latestBlockResponse.result) {
-      throw new Error('Failed to get latest block number')
-    }
-
-    const latestBlockNumber = parseInt(latestBlockResponse.result, 16)
-
-    // 根据时间段计算需要分析的区块数量
-    // 假设每个区块平均12秒，计算需要分析的区块数
-    const blocksPerMinute = 5 // 12秒一个区块
-    const minutesToAnalyze = TIME_PERIODS[period as keyof typeof TIME_PERIODS]
-    const blocksToAnalyze = Math.min(Math.ceil(minutesToAnalyze * blocksPerMinute), 1000) // 最多1000个区块
-
-    console.log(`Analyzing ${blocksToAnalyze} blocks for period ${period}`)
-
-    const addressBurnMap = new Map<string, {
-      address: string
-      burned: number
-      transactionCount: number
-      category?: string
-      name?: string
-      lastActivity: number // 最后活动时间戳
-    }>()
-
-    let totalNetworkBurned = 0
-    const fetchPromises = []
-
-    // 分批获取区块数据，避免一次性请求过多
-    const batchSize = 20
-    for (let i = 0; i < blocksToAnalyze; i += batchSize) {
-      const batchPromises = []
-      
-      for (let j = 0; j < batchSize && (i + j) < blocksToAnalyze; j++) {
-        const blockNumber = '0x' + (latestBlockNumber - i - j).toString(16)
-
-        const blockUrl = new URL(ETHERSCAN_BASE_URL)
-        blockUrl.searchParams.set('chainid', chainId)
-        blockUrl.searchParams.set('module', 'proxy')
-        blockUrl.searchParams.set('action', 'eth_getBlockByNumber')
-        blockUrl.searchParams.set('tag', blockNumber)
-        blockUrl.searchParams.set('boolean', 'true') // 包含交易详情
-        blockUrl.searchParams.set('apikey', ETHERSCAN_API_KEY)
-
-        batchPromises.push(
-          makeHttpsRequest(blockUrl.toString()).then(response => ({
-            blockNumber: latestBlockNumber - i - j,
-            data: response.result
-          }))
-        )
-      }
-
-      fetchPromises.push(Promise.all(batchPromises))
-    }
-
-    // 并行获取所有区块数据
-    const batchResults = await Promise.all(fetchPromises)
-    const blockResults = batchResults.flat()
-
-    // 分析每个区块的交易
-    for (const { blockNumber, data } of blockResults) {
-      if (!data || !Array.isArray(data.transactions)) continue
-
-      const baseFeePerGas = parseInt(data.baseFeePerGas || '0x0', 16)
-      const blockTimestamp = parseInt(data.timestamp || '0x0', 16) * 1000
-
-      // 分析每个交易
-      for (const tx of data.transactions) {
-        if (!tx.to) continue // 跳过合约创建交易
-
-        const gasUsed = parseInt(tx.gasUsed || '0x0', 16)
-        const gasPrice = parseInt(tx.gasPrice || '0x0', 16)
-        
-        // 计算燃烧量 (baseFee * gasUsed)
-        const burned = (baseFeePerGas * gasUsed) / 1e18
-        totalNetworkBurned += burned
-
-        const address = tx.to.toLowerCase()
-        
-        if (addressBurnMap.has(address)) {
-          const existing = addressBurnMap.get(address)!
-          existing.burned += burned
-          existing.transactionCount += 1
-          existing.lastActivity = Math.max(existing.lastActivity, blockTimestamp)
-        } else {
-          // 检查是否是已知合约
-          const contractInfo = CONTRACT_CATEGORIES[address as keyof typeof CONTRACT_CATEGORIES]
-          
-          addressBurnMap.set(address, {
-            address,
-            burned,
-            transactionCount: 1,
-            category: contractInfo?.category,
-            name: contractInfo?.name,
-            lastActivity: blockTimestamp,
-          })
-        }
-      }
-    }
-
-    // 转换为数组并排序
-    const sortedAddresses = Array.from(addressBurnMap.values())
-      .sort((a, b) => b.burned - a.burned)
-      .slice(0, limit)
-    
-    const rankings = sortedAddresses.map((item, index) => {
-      const burnedETH = item.burned
-      const burnedUSD = burnedETH * ethPrice
-      const percentage = totalNetworkBurned > 0 ? (item.burned / totalNetworkBurned) * 100 : 0
-
-      return {
-        rank: index + 1,
-        address: item.address,
-        name: item.name || `Address ${item.address.slice(0, 8)}...`,
-        category: item.category || 'OTHER',
-        burnedETH: burnedETH.toFixed(6),
-        burnedUSD: burnedUSD.toFixed(2),
-        percentage: percentage.toFixed(2),
-        transactionCount: item.transactionCount,
-        lastActivity: item.lastActivity,
-      }
-    })
-
-    return NextResponse.json(
-      {
-        status: '1',
-        message: 'OK',
-        result: rankings,
-        metadata: {
-          period,
-          analyzedBlocks: blocksToAnalyze,
-          totalAddresses: addressBurnMap.size,
-          totalNetworkBurned: totalNetworkBurned.toFixed(6),
-          totalNetworkBurnedUSD: (totalNetworkBurned * ethPrice).toFixed(2),
-          ethPrice,
-          timestamp: Date.now(),
-        },
-      },
-      {
-        status: 200,
-        headers: {
-          'Access-Control-Allow-Origin': '*',
-          'Access-Control-Allow-Methods': 'GET, OPTIONS',
-          'Access-Control-Allow-Headers': 'Content-Type',
-          'Cache-Control': 'public, max-age=30', // 30秒缓存
-        },
-      }
-    )
+    return successResponse(ranking, 'OK')
   } catch (error) {
-    console.error('[Burn Ranking API Error]:', {
-      message: error instanceof Error ? error.message : 'Unknown error',
-      timestamp: new Date().toISOString(),
-    })
-
-    return NextResponse.json(
-      {
-        status: '0',
-        error: 'Failed to fetch burn ranking',
-        message: error instanceof Error ? error.message : 'Unknown error',
-        timestamp: new Date().toISOString(),
-      },
-      {
-        status: 500,
-        headers: {
-          'Access-Control-Allow-Origin': '*',
-        },
-      }
-    )
+    return handleApiError(error)
   }
 }
 
-// 处理 OPTIONS 请求（CORS 预检）
 export async function OPTIONS() {
-  return new NextResponse(null, {
-    status: 200,
-    headers: {
-      'Access-Control-Allow-Origin': '*',
-      'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
-      'Access-Control-Allow-Headers': 'Content-Type, Authorization',
-    },
-  })
+  return handleOptionsRequest()
 }

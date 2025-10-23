@@ -1,160 +1,155 @@
 /**
  * HTTP请求客户端
+ * 基于 axios 的简洁请求封装
  */
 
-import { ApiResponse, RequestConfig, RequestError, RequestParams } from './types'
-
-// 扩展RequestInit类型以包含params
-interface ExtendedRequestInit {
-  method?: string
-  headers?: Record<string, string>
-  body?: string
-  params?: RequestParams
-  signal?: AbortSignal
-}
+import axios, { AxiosInstance, AxiosRequestConfig, AxiosResponse, AxiosError } from 'axios'
+import { ApiResponse, RequestConfig, RequestError } from './types'
+import { DEFAULT_REQUEST_CONFIG } from './config'
 
 /**
  * HTTP请求客户端类
  */
 export class HttpClient {
-  private baseURL: string
+  private axiosInstance: AxiosInstance
   private config: RequestConfig
 
   constructor(baseURL: string = '', config: RequestConfig = {}) {
-    this.baseURL = baseURL
-    this.config = { ...config }
+    this.config = { ...DEFAULT_REQUEST_CONFIG, ...config }
+    
+    // 创建 axios 实例
+    this.axiosInstance = axios.create({
+      baseURL,
+      ...this.config,
+    })
+
+    // 设置请求拦截器
+    this.setupRequestInterceptors()
+    
+    // 设置响应拦截器
+    this.setupResponseInterceptors()
+  }
+
+  /**
+   * 设置请求拦截器
+   */
+  private setupRequestInterceptors(): void {
+    this.axiosInstance.interceptors.request.use(
+      (config) => {
+        // 请求前处理
+        return config
+      },
+      (error) => {
+        return Promise.reject(error)
+      }
+    )
+  }
+
+  /**
+   * 设置响应拦截器
+   */
+  private setupResponseInterceptors(): void {
+    this.axiosInstance.interceptors.response.use(
+      (response: AxiosResponse) => {
+        // 检查 API 响应状态
+        const data = response.data
+        if (data && typeof data === 'object' && data.status === '0' && data.message) {
+          throw new RequestError(`API Error: ${data.message}`)
+        }
+        
+        return response
+      },
+      (error: AxiosError) => {
+        // 重试逻辑
+        if (this.shouldRetry(error)) {
+          return this.retryRequest(error.config!)
+        }
+        
+        throw new RequestError(
+          error.message || 'Request failed',
+          error
+        )
+      }
+    )
+  }
+
+  /**
+   * 判断是否应该重试
+   */
+  private shouldRetry(error: AxiosError): boolean {
+    const retries = this.config.retries || 0
+    const retryCount = (error.config as any)?.['__retryCount'] || 0
+    
+    return retryCount < retries && (
+      !error.response || 
+      error.response.status >= 500 ||
+      error.code === 'ECONNABORTED'
+    )
+  }
+
+  /**
+   * 重试请求
+   */
+  private async retryRequest(config: AxiosRequestConfig): Promise<AxiosResponse> {
+    const retryCount = (config as any)['__retryCount'] || 0
+    const retryDelay = this.config.retryDelay || 1000
+    
+    ;(config as any)['__retryCount'] = retryCount + 1
+    
+    // 延迟重试
+    await new Promise(resolve => setTimeout(resolve, retryDelay * Math.pow(2, retryCount)))
+    
+    return this.axiosInstance.request(config)
   }
 
   /**
    * 发送HTTP请求
    */
-  async request<T = any>(
-    url: string,
-    options: ExtendedRequestInit = {}
-  ): Promise<ApiResponse<T>> {
-    const { params, ...requestOptions } = options
-    
-    // 构建完整URL
-    const fullUrl = this.buildUrl(url, params)
-    
-    // 合并请求配置
-    const mergedOptions: ExtendedRequestInit = {
-      method: 'GET',
-      headers: {
-        ...this.config.headers,
-        ...requestOptions.headers,
-      },
-      ...requestOptions,
-    }
-
-    // 设置超时
-    const controller = new AbortController()
-    const timeoutId = setTimeout(() => controller.abort(), this.config.timeout)
-
-    try {
-      const response = await fetch(fullUrl, {
-        ...mergedOptions,
-        signal: controller.signal,
-      })
-
-      clearTimeout(timeoutId)
-
-      if (!response.ok) {
-        throw this.createError(response)
-      }
-
-      const data = await response.json()
-      
-      // 检查Etherscan API响应状态
-      if (data.status === '0' && data.message) {
-        throw new Error(`API Error: ${data.message}`)
-      }
-
-      return data
-    } catch (error) {
-      clearTimeout(timeoutId)
-      
-      if (error instanceof Error) {
-        if (error.name === 'AbortError') {
-          throw new RequestError('Request timeout', { cause: error })
-        }
-        throw error
-      }
-      
-      throw new RequestError('Unknown error occurred', { cause: error })
-    }
+  async request<T = any>(config: AxiosRequestConfig): Promise<ApiResponse<T>> {
+    const response = await this.axiosInstance.request<ApiResponse<T>>(config)
+    return response.data
   }
 
   /**
    * GET请求
    */
-  async get<T = any>(url: string, params?: RequestParams): Promise<ApiResponse<T>> {
-    return this.request<T>(url, { method: 'GET', params })
+  async get<T = any>(url: string, config?: AxiosRequestConfig): Promise<ApiResponse<T>> {
+    return this.request<T>({ ...config, method: 'GET', url })
   }
 
   /**
    * POST请求
    */
-  async post<T = any>(url: string, data?: any, params?: RequestParams): Promise<ApiResponse<T>> {
-    return this.request<T>(url, {
-      method: 'POST',
-      body: JSON.stringify(data),
-      params,
-    })
+  async post<T = any>(url: string, data?: any, config?: AxiosRequestConfig): Promise<ApiResponse<T>> {
+    return this.request<T>({ ...config, method: 'POST', url, data })
   }
 
   /**
    * PUT请求
    */
-  async put<T = any>(url: string, data?: any, params?: RequestParams): Promise<ApiResponse<T>> {
-    return this.request<T>(url, {
-      method: 'PUT',
-      body: JSON.stringify(data),
-      params,
-    })
+  async put<T = any>(url: string, data?: any, config?: AxiosRequestConfig): Promise<ApiResponse<T>> {
+    return this.request<T>({ ...config, method: 'PUT', url, data })
   }
 
   /**
    * DELETE请求
    */
-  async delete<T = any>(url: string, params?: RequestParams): Promise<ApiResponse<T>> {
-    return this.request<T>(url, { method: 'DELETE', params })
+  async delete<T = any>(url: string, config?: AxiosRequestConfig): Promise<ApiResponse<T>> {
+    return this.request<T>({ ...config, method: 'DELETE', url })
   }
 
   /**
-   * 构建完整URL
+   * PATCH请求
    */
-  private buildUrl(url: string, params?: RequestParams): string {
-    const fullUrl = url.startsWith('http') ? url : `${this.baseURL}${url}`
-    
-    if (!params) return fullUrl
-
-    const urlObj = new URL(fullUrl)
-    Object.entries(params).forEach(([key, value]) => {
-      if (value !== undefined && value !== null) {
-        urlObj.searchParams.set(key, String(value))
-      }
-    })
-
-    return urlObj.toString()
-  }
-
-  /**
-   * 创建错误对象
-   */
-  private createError(response: Response): RequestError {
-    const error = new RequestError(`HTTP ${response.status}: ${response.statusText}`)
-    error.status = response.status
-    error.statusText = response.statusText
-    error.response = response
-    return error
+  async patch<T = any>(url: string, data?: any, config?: AxiosRequestConfig): Promise<ApiResponse<T>> {
+    return this.request<T>({ ...config, method: 'PATCH', url, data })
   }
 
   /**
    * 设置基础URL
    */
   setBaseURL(baseURL: string): void {
-    this.baseURL = baseURL
+    this.axiosInstance.defaults.baseURL = baseURL
   }
 
   /**
@@ -162,6 +157,14 @@ export class HttpClient {
    */
   updateConfig(config: Partial<RequestConfig>): void {
     this.config = { ...this.config, ...config }
+    Object.assign(this.axiosInstance.defaults, config)
+  }
+
+  /**
+   * 获取 axios 实例（用于高级用法）
+   */
+  getAxiosInstance(): AxiosInstance {
+    return this.axiosInstance
   }
 }
 
