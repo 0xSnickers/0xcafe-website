@@ -9,12 +9,18 @@ import { createClient } from '@supabase/supabase-js'
 import type { Database } from './types'
 
 // Validate environment variables
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
-const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+// Support both NEXT_PUBLIC_ prefix (for Next.js client) and without prefix (for server/CI)
+const supabaseUrl = 
+  process.env.NEXT_PUBLIC_SUPABASE_URL || 
+  process.env.SUPABASE_URL
+
+const supabaseKey = 
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 
+  process.env.SUPABASE_ANON_KEY
 
 if (!supabaseUrl || !supabaseKey) {
   throw new Error(
-    'Missing Supabase environment variables. Please check your .env.local file.'
+    'Missing Supabase environment variables. Please check your .env.local file or GitHub Secrets.'
   )
 }
 
