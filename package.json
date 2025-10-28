@@ -15,6 +15,7 @@
     "test:coverage": "jest --coverage",
     "db:test": "tsx --env-file=.env.local scripts/test-postgresql.ts",
     "sync:base-fees": "tsx --env-file=.env.local scripts/sync-base-fees.ts",
+    "sync:base-fees:ci": "tsx scripts/sync-base-fees.ts",
     "generate:types": "supabase gen types typescript --project-id YOUR_PROJECT_ID > backend/postgresql/types.ts"
   },
   "dependencies": {
