@@ -65,8 +65,6 @@ export function GasPriceSection() {
     data: gasData,
     isLoading: gasLoading,
     error: gasError,
-    refetch: refetchGas,
-    isFetching: gasFetching,
     dataUpdatedAt,
   } = useGasPrice(currentChain, {
     refetchInterval: 15000, // 每15秒刷新

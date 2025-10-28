@@ -3,7 +3,7 @@
 import * as React from 'react'
 import { motion } from 'framer-motion'
 import { useTranslation } from 'react-i18next'
-import { Flame, Crown, RefreshCw, AlertCircle, Clock } from 'lucide-react'
+import { Flame, Crown, Clock } from 'lucide-react'
 import { useFormattedBurntFees } from '@/hooks/use-burnt-fees-rpc'
 import { useBlocks } from '@/hooks/use-blocks'
 import { useRanking, useCategories } from '@/hooks/use-ranking'
@@ -67,9 +67,6 @@ export function BurnHistorySection() {
       avgGasUsedPercent: totalBurned.avgGasUsedPercent,
     }
   }, [totalBurned])
-
-  const isLoading = totalLoading || blocksLoading || rankingsLoading || categoriesLoading
-  const hasError = totalError || blocksError || rankingsError || categoriesError
 
   return (
     <section className="py-20 bg-background">

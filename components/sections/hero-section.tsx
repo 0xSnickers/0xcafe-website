@@ -7,6 +7,20 @@ import { useTranslation } from 'react-i18next'
 import { Button } from '@/components/ui/button'
 import { Sparkles } from 'lucide-react'
 
+// Solidity 代码内容 - 移到组件外部作为常量
+const codeLines = [
+  '// SPDX-License-Identifier: GPL-3.0',
+  'pragma solidity ^0.8.0;',
+  '',
+  'contract Library {',
+  '    uint public value;',
+  '',
+  '    function setValue(uint _value) public {',
+  '        value = _value;',
+  '    }',
+  '}',
+]
+
 /**
  * 首页英雄区域组件 - Web3工具箱风格
  * 强调100%免费工具，融入主流币种图标
@@ -16,20 +30,6 @@ export function HeroSection() {
 
   // 代码动画状态
   const [displayedCode, setDisplayedCode] = React.useState<string[]>([])
-  
-  // Solidity 代码内容
-  const codeLines = [
-    '// SPDX-License-Identifier: GPL-3.0',
-    'pragma solidity ^0.8.0;',
-    '',
-    'contract Library {',
-    '    uint public value;',
-    '',
-    '    function setValue(uint _value) public {',
-    '        value = _value;',
-    '    }',
-    '}',
-  ]
 
   // 代码打字动画效果
   React.useEffect(() => {
