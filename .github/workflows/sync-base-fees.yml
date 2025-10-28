@@ -1,0 +1,50 @@
+name: Sync Base Fees to PostgreSQL
+
+on:
+  # 定时执行：每5分钟
+  schedule:
+    - cron: '*/5 * * * *'
+  
+  # 允许手动触发
+  workflow_dispatch:
+  
+  # 可选：推送到 main 分支时也触发
+  # push:
+  #   branches:
+  #     - main
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'pnpm'
+      
+      - name: Install pnpm
+        uses: pnpm/action-setup@v3
+        with:
+          version: 8
+      
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+      
+      - name: Run sync script
+        env:
+          # 从 GitHub Secrets 读取环境变量
+          NEXT_PUBLIC_ALCHEMY_API_KEY: ${{ secrets.NEXT_PUBLIC_ALCHEMY_API_KEY }}
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+        run: pnpm run sync:base-fees
+      
+      - name: Log sync completion
+        run: |
+          echo "✅ Base fees sync completed at $(date)"
+          echo "📊 Synced 30 blocks to PostgreSQL"
+
