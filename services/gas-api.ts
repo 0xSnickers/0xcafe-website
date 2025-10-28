@@ -15,7 +15,7 @@ export interface GasPriceResponse {
   propose: number
   fast: number
   baseFee: number
-  gasUsedRatio: number[]
+  gasPrice: number
   timestamp: number
 }
 
@@ -49,21 +49,6 @@ export class GasApiService {
     return getChainConfig(chain).id.toString()
   }
 
-  /**
-   * 解析 gasUsedRatio 字符串为数组
-   * Etherscan 返回格式: "0.233887,0.711344,0.469044,0.462337,0.440736"
-   */
-  private parseGasUsedRatio(ratio: string | number[] | undefined): number[] {
-    if (Array.isArray(ratio)) {
-      return ratio
-    }
-
-    if (typeof ratio === 'string') {
-      return ratio.split(',').map(v => parseFloat(v.trim())).filter(v => !isNaN(v))
-    }
-
-    return [0]
-  }
 
   /**
    * 安全解析浮点数
@@ -97,23 +82,29 @@ export class GasApiService {
       const chainId = this.getChainId(chain)
       const endpoint = getGasEndpoint(chainId)
       
-      const response = await httpClient.get<{
-        LastBlock: string
-        SafeGasPrice: string
-        ProposeGasPrice: string
-        FastGasPrice: string
-        suggestBaseFee: string
-        gasUsedRatio: string | number[]
-      }>(endpoint)
+      // 直接使用 fetch，因为新 API 返回格式不同于 Etherscan
+      const response = await fetch(endpoint)
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`)
+      }
+
+      const json = await response.json()
+      
+      // 新 API 返回格式: { success: true, data: { ... } }
+      if (!json.success || !json.data) {
+        throw new Error('Invalid API response: missing data field')
+      }
+
+      const data = json.data
 
       return {
-        lastBlock: this.parseInt(response.result.LastBlock),
-        safe: this.parseFloat(response.result.SafeGasPrice),
-        propose: this.parseFloat(response.result.ProposeGasPrice),
-        fast: this.parseFloat(response.result.FastGasPrice),
-        baseFee: this.parseFloat(response.result.suggestBaseFee),
-        gasUsedRatio: this.parseGasUsedRatio(response.result.gasUsedRatio),
-        timestamp: Date.now(),
+        lastBlock: this.parseInt(data.LastBlock),
+        safe: this.parseFloat(data.SafeGasPrice),
+        propose: this.parseFloat(data.ProposeGasPrice),
+        fast: this.parseFloat(data.FastGasPrice),
+        baseFee: this.parseFloat(data.suggestBaseFee),
+        gasPrice: this.parseFloat(data.gasPrice),
+        timestamp: data.timestamp * 1000, // API 返回秒，转换为毫秒
       }
     } catch (error) {
       console.error('getGasPrice error:', error)

@@ -16,6 +16,5 @@ export * from './apis'
 export * from './response'
 
 // 便捷方法
-export { GasApiService, BlockApiService, BurnDataApiService } from './apis'
+export { GasApiService } from './apis'
 export { successResponse, errorResponse, validationErrorResponse, handleApiError, handleOptionsRequest } from './response'
-export { validateChainId, validatePeriod, validateLimit } from './response'

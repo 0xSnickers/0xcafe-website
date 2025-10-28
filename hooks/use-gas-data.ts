@@ -67,9 +67,9 @@ export function useBurnHistory(chain: SupportedChain = 'ethereum', limit: number
       const api = createGasApiService('')
       return await api.getBurnHistory(chain, limit, period)
     },
-    refetchInterval: options?.refetchInterval ?? 60000, // 60秒刷新
+    refetchInterval: false, // 禁用自动刷新，只通过手动触发
     enabled: options?.enabled ?? true,
-    staleTime: 30000, // 30秒内认为数据是新鲜的
+    staleTime: Infinity, // 数据不会过期
     retry: 2,
     retryDelay: 2000,
   })
@@ -120,9 +120,9 @@ export function useTotalBurned(chain: SupportedChain = 'ethereum', period: strin
       const api = createGasApiService('')
       return await api.getTotalBurned(chain, period)
     },
-    refetchInterval: options?.refetchInterval ?? 60000, // 60秒刷新
+    refetchInterval: false, // 禁用自动刷新，只通过手动触发
     enabled: options?.enabled ?? true,
-    staleTime: 30000, // 30秒内认为数据是新鲜的
+    staleTime: Infinity, // 数据不会过期
     retry: 3,
     retryDelay: 1000,
   })
@@ -236,9 +236,9 @@ export function useBurnCategories(chain: SupportedChain = 'ethereum', limit: num
       const api = createGasApiService('')
       return await api.getBurnCategories(chain, limit)
     },
-    refetchInterval: options?.refetchInterval ?? 15000, // 15秒刷新
+    refetchInterval: false, // 禁用自动刷新，只通过手动触发
     enabled: options?.enabled ?? true,
-    staleTime: 10000, // 10秒内认为数据是新鲜的
+    staleTime: Infinity, // 数据不会过期
     retry: 2,
     retryDelay: 2000,
   })

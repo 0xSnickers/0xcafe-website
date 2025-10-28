@@ -31,7 +31,7 @@ export const CHAIN_CONFIGS: Record<SupportedChain, ChainConfig> = {
     id: 1,
     name: 'Ethereum',
     symbol: 'ETH',
-    rpcUrl: 'https://mainnet.infura.io/v3',
+    rpcUrl: 'https://eth-mainnet.g.alchemy.com/v2',
     explorerUrl: 'https://etherscan.io',
     apiKey: process.env.NEXT_PUBLIC_ETHERSCAN_API_KEY || '',
     alchemyChainName: 'eth-mainnet',

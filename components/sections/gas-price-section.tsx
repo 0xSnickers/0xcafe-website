@@ -57,16 +57,32 @@ export function GasPriceSection() {
     return coinMap[selectedCoin] || 'ethereum'
   }, [selectedCoin])
 
+  // 倒计时状态
+  const [countdown, setCountdown] = React.useState(15)
+
   // 获取实时Gas数据
   const {
     data: gasData,
     isLoading: gasLoading,
     error: gasError,
     refetch: refetchGas,
-    isFetching: gasFetching
+    isFetching: gasFetching,
+    dataUpdatedAt,
   } = useGasPrice(currentChain, {
     refetchInterval: 15000, // 每15秒刷新
   })
+
+  // 倒计时逻辑
+  React.useEffect(() => {
+    const timer = setInterval(() => {
+      const now = Date.now()
+      const elapsed = Math.floor((now - dataUpdatedAt) / 1000)
+      const remaining = Math.max(0, 15 - elapsed)
+      setCountdown(remaining)
+    }, 1000)
+
+    return () => clearInterval(timer)
+  }, [dataUpdatedAt])
 
   const selectedCoinData = COINS.find(coin => coin.id === selectedCoin) || COINS[0]
 
@@ -107,14 +123,6 @@ export function GasPriceSection() {
     })
   }, [gasData, t])
 
-  // 网络状态
-  const networkStatus = React.useMemo(() => {
-    if (!gasData || gasData.gasUsedRatio.length === 0) return null
-    const utilization = gasData.gasUsedRatio[0]
-    if (utilization > 0.8) return { label: '拥堵', color: 'text-red-500' }
-    if (utilization > 0.6) return { label: '繁忙', color: 'text-yellow-500' }
-    return { label: '正常', color: 'text-green-500' }
-  }, [gasData])
 
   return (
     <section className="py-24 px-4 min-h-screen">
@@ -228,57 +236,40 @@ export function GasPriceSection() {
             <h1 className="text-4xl md:text-5xl font-bold">
               {selectedCoinData.name} {t('gas.title')}
             </h1>
+          </div>
 
-            {/* 实时状态指示器 */}
-            <div className="flex items-center gap-2">
-              {gasLoading ? (
-                <motion.div
-                  animate={{ rotate: 360 }}
-                  transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
-                  className="text-blue-500"
-                >
-                  <RefreshCw className="h-5 w-5" />
-                </motion.div>
-              ) : gasError ? (
-                <AlertCircle className="h-5 w-5 text-red-500" />
-              ) : (
+          <div className="flex items-center justify-center gap-4 text-lg text-muted-foreground">
+            <span>{selectedCoinData.chainName} • Chain ID: {selectedCoinData.chainId}</span>
+            
+            {/* 实时状态指示器 + 倒计时 */}
+            {!gasLoading && !gasError && (
+              <div className="flex items-center gap-2">
                 <motion.div
                   animate={{ scale: [1, 1.2, 1] }}
                   transition={{ duration: 2, repeat: Infinity }}
-                  className="w-3 h-3 bg-green-500 rounded-full"
+                  className="w-2 h-2 bg-green-500 rounded-full"
                 />
-              )}
-
-              {/* 手动刷新按钮 - 只显示图标 */}
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => refetchGas()}
-                disabled={gasFetching}
-                className="w-8 h-8 p-0"
-                title="刷新Gas数据"
+                <span className="text-sm font-mono">
+                  {countdown}s
+                </span>
+              </div>
+            )}
+            
+            {gasLoading && (
+              <motion.div
+                animate={{ rotate: 360 }}
+                transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
+                className="text-blue-500"
               >
-                <RefreshCw className={`h-4 w-4 ${gasFetching ? 'animate-spin' : ''}`} />
-              </Button>
-            </div>
+                <RefreshCw className="h-4 w-4" />
+              </motion.div>
+            )}
+            
+            {gasError && (
+              <AlertCircle className="h-4 w-4 text-red-500" />
+            )}
           </div>
 
-          <p className="text-lg text-muted-foreground">
-            {selectedCoinData.chainName} • Chain ID: {selectedCoinData.chainId}
-          </p>
-
-          {/* 实时数据状态 */}
-          {gasData && (
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              className="mt-4 text-sm text-muted-foreground"
-            >
-              <span>最后更新: {new Date(gasData.timestamp).toLocaleTimeString()}</span>
-              <span className="mx-2">•</span>
-              <span>区块: #{gasData.lastBlock.toLocaleString()}</span>
-            </motion.div>
-          )}
 
           {/* 错误提示 */}
           {gasError && (
@@ -356,30 +347,23 @@ export function GasPriceSection() {
           transition={{ delay: 0.5 }}
           className="flex flex-wrap items-center justify-center gap-8 text-sm text-muted-foreground"
         >
-          <div>
-            <span className="mr-2">{t('gas.baseGasPrice')}:</span>
-            <span className="font-semibold text-foreground">
-              {gasData ? `${gasData.baseFee.toFixed(2)} Gwei` : '-.-- Gwei'}
-            </span>
-          </div>
-          {gasData && gasData.gasUsedRatio.length > 0 && (
-            <>
-              <div>
-                <span className="mr-2">Gas使用率:</span>
+          <div className="flex items-center gap-4">
+            <div>
+              <span className="mr-2">{t('gas.baseGasPrice')}:</span>
+              <span className="font-semibold text-foreground">
+                {gasData ? `${gasData.gasPrice.toFixed(2)} Gwei` : '-.-- Gwei'}
+              </span>
+            </div>
+            {gasData && (
+              <div className="flex items-center gap-2">
+                <span className="text-muted-foreground">•</span>
+                <span className="mr-2">区块:</span>
                 <span className="font-semibold text-foreground">
-                  {(gasData.gasUsedRatio[0] * 100).toFixed(1)}%
+                  #{gasData.lastBlock.toLocaleString()}
                 </span>
               </div>
-              {networkStatus && (
-                <div>
-                  <span className="mr-2">网络状态:</span>
-                  <span className={`font-semibold ${networkStatus.color}`}>
-                    {networkStatus.label}
-                  </span>
-                </div>
-              )}
-            </>
-          )}
+            )}
+          </div>
         </motion.div>
       </div>
     </section>

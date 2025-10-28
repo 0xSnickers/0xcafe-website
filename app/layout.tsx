@@ -5,7 +5,7 @@ import './globals.css'
 import { ThemeProvider } from '@/components/providers/theme-provider'
 import { I18nProvider } from '@/components/providers/i18n-provider'
 import { Web3Provider } from '@/components/providers/web3-provider'
-
+import { Analytics } from "@vercel/analytics/next"
 const inter = Inter({ subsets: ['latin'] })
 
 export const metadata: Metadata = {
@@ -37,6 +37,7 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body className={inter.className}>
+        <Analytics />
         <ThemeProvider
           attribute="class"
           defaultTheme="dark"

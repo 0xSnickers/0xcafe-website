@@ -42,18 +42,23 @@ export const API_ENDPOINTS = {
     baseUrl: 'https://api.etherscan.io/v2/api',
     apiKey: process.env.NEXT_PUBLIC_ETHERSCAN_API_KEY || '',
   },
+} as const
+
+// Etherscan 专用配置
+export const ETHERSCAN_CONFIG = {
+  // API Keys（支持多个 Key 轮询）
+  apiKeys: [
+    process.env.NEXT_PUBLIC_ETHERSCAN_API_KEY || '',
+  ].filter(key => key !== ''),
   
-  // Infura API
-  infura: {
-    baseUrl: 'https://mainnet.infura.io/v3',
-    apiKey: process.env.NEXT_PUBLIC_INFURA_API_KEY || '',
-  },
+  // 速率限制（每秒请求数）
+  rateLimitPerSecond: 5,
   
-  // Infura Gas API
-  infuraGas: {
-    baseUrl: 'https://gas.api.infura.io/v3',
-    apiKey: process.env.NEXT_PUBLIC_INFURA_API_KEY || '',
-  },
+  // 请求超时（毫秒）
+  timeout: 30000,
+  
+  // 默认缓存时间（毫秒）
+  defaultCacheTtl: 12000, // 12 秒
 } as const
 
 // 链 ID 到网络名称的映射

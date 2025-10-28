@@ -34,12 +34,11 @@ export async function GET(request: NextRequest) {
 ```typescript
 import { GasApiService } from '@/backend/http'
 
-// 获取 Gas 价格（自动选择最佳提供商）
+// 获取 Gas 价格（使用 BlockNative API）
 const gasData = await GasApiService.getGasPrice('1')
 
-// 使用特定提供商
-const alchemyGas = await GasApiService.getGasPriceFromAlchemy('1')
-const infuraGas = await GasApiService.getGasPriceFromInfura('1')
+// 获取原始 BlockNative 数据
+const rawGasData = await GasApiService.getRawGasPrice('1')
 ```
 
 #### 区块 API 服务
@@ -136,9 +135,6 @@ NEXT_PUBLIC_ALCHEMY_API_KEY=your_alchemy_api_key
 
 # Etherscan API
 NEXT_PUBLIC_ETHERSCAN_API_KEY=your_etherscan_api_key
-
-# Infura API
-NEXT_PUBLIC_INFURA_API_KEY=your_infura_api_key
 
 # 代理配置（可选）
 HTTPS_PROXY=http://proxy:port

@@ -93,7 +93,7 @@
     }
   },
   "gas": {
-    "title": "Gas Price Report (Gwei)",
+    "title": "Gas Price (Gwei)",
     "subtitle": "Based on transaction costs in the past 3 blocks",
     "installExtension": "Install Gas Browser Extension",
     "priority": "Priority",
@@ -113,15 +113,26 @@
   },
   "burn": {
     "title": "Burn History",
+    "history": "Burn History",
     "period": "Period",
     "totalBurned": "Total Burned",
     "currentPeriod": "Current Period",
     "burnRate": "Burn Rate",
-    "recentBlocks": "Recent Blocks",
+    "avgPerBlock": "Avg/Block",
+    "recentBlocks": "Blocks",
     "recentBurns": "Recent Burns",
     "rankings": "Burn Rankings",
     "categories": "Burn Categories",
-    "gas": "Gas"
+    "gas": "Gas",
+    "loading": "Loading...",
+    "failed": "Failed to load",
+    "noData": "No data",
+    "noBlocks": "No blocks found. Run: pnpm run sync:base-fees",
+    "table": {
+      "block": "Block",
+      "gasFee": "Gas Fee",
+      "burnt": "Burnt"
+    }
   },
   "footer": {
     "brand": {

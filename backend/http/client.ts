@@ -116,7 +116,7 @@ export class HttpClient {
   }
 
   /**
-   * 发送请求（带重试机制）
+   * 发送请求（带重试机制 + 指数退避）
    */
   async request<T = any>(config: AxiosRequestConfig): Promise<T> {
     let lastError: AxiosError | null = null
@@ -129,9 +129,12 @@ export class HttpClient {
         lastError = error as AxiosError
         const isLastAttempt = attempt === REQUEST_CONFIG.maxRetries
 
-        if (isLastAttempt) {
+        // 判断是否应该重试
+        const shouldRetry = this.shouldRetryError(lastError)
+
+        if (isLastAttempt || !shouldRetry) {
           throw new ApiRequestError(
-            `Request failed after ${REQUEST_CONFIG.maxRetries} attempts: ${lastError.message}`,
+            `Request failed after ${attempt} attempt(s): ${lastError.message}`,
             lastError.response?.status,
             lastError.response?.statusText,
             lastError.response?.data,
@@ -139,12 +142,43 @@ export class HttpClient {
           )
         }
 
-        // 等待后重试
-        await this.delay(REQUEST_CONFIG.retryDelay * attempt)
+        // 指数退避：1s, 2s, 4s, 8s, 16s
+        const backoffDelay = REQUEST_CONFIG.retryDelay * Math.pow(2, attempt - 1)
+        // 添加随机抖动 (±20%)
+        const jitter = backoffDelay * 0.2 * (Math.random() - 0.5)
+        const delayTime = Math.min(backoffDelay + jitter, 30000) // 最大 30 秒
+
+        if (process.env.NODE_ENV !== 'production') {
+          console.log(`[HTTP Retry] Attempt ${attempt}/${REQUEST_CONFIG.maxRetries} failed, retrying in ${Math.round(delayTime)}ms...`)
+        }
+
+        await this.delay(delayTime)
       }
     }
 
     throw new ApiRequestError('Request failed after all retries')
+  }
+
+  /**
+   * 判断错误是否应该重试
+   */
+  private shouldRetryError(error: AxiosError): boolean {
+    // 网络错误,超时等应该重试
+    if (!error.response) return true
+
+    const status = error.response.status
+
+    // 以下状态码应该重试
+    const retryableStatuses = [
+      408, // Request Timeout
+      429, // Too Many Requests
+      500, // Internal Server Error
+      502, // Bad Gateway
+      503, // Service Unavailable
+      504, // Gateway Timeout
+    ]
+
+    return retryableStatuses.includes(status)
   }
 
   /**

@@ -50,6 +50,9 @@ pnpm dev
 ```
 .
 ├── app/                      # Next.js App Router pages
+│   ├── api/                 # API routes
+│   │   ├── gas/            # Gas price API
+│   │   └── database/       # Database API endpoints
 │   ├── globals.css          # Global styles
 │   ├── layout.tsx           # Root layout
 │   └── page.tsx             # Home page
@@ -60,6 +63,14 @@ pnpm dev
 │   ├── providers/           # Context providers
 │   ├── theme-toggle.tsx     # Theme switcher
 │   └── locale-toggle.tsx    # Language switcher
+├── backend/                 # Backend code
+│   ├── http/                # HTTP client and APIs
+│   ├── postgresql/          # PostgreSQL/Supabase integration
+│   │   ├── client.ts        # Database client
+│   │   ├── queries.ts       # Database queries
+│   │   ├── types.ts         # Database types
+│   │   └── README.md        # Database documentation
+│   └── services/            # Backend services
 ├── lib/                     # Utility functions
 │   ├── utils.ts             # General utilities
 │   └── i18n/                # i18n configuration
@@ -67,6 +78,7 @@ pnpm dev
 │       └── locales/         # Translation files
 │           ├── en.json      # English
 │           └── zh.json      # Chinese
+├── subgraph/                # The Graph subgraph code
 ├── public/                  # Static assets
 ├── docs/                    # Documentation
 └── scripts/                 # Build scripts
@@ -83,6 +95,8 @@ pnpm dev
 - **Theme**: next-themes
 - **i18n**: i18next + react-i18next
 - **Icons**: Lucide React
+- **Database**: PostgreSQL (Supabase)
+- **Blockchain**: The Graph, Wagmi, Viem
 
 ## 📚 Documentation
 

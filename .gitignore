@@ -1,6 +1,8 @@
 # dependencies
 /node_modules
+
 /.pnp
+/.claude/*
 .pnp.*
 
 # testing
@@ -41,3 +43,5 @@ next-env.d.ts
 *.swo
 
 /docs/
+
+pnpm-lock.yaml

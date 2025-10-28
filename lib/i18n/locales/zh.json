@@ -93,7 +93,7 @@
     }
   },
   "gas": {
-    "title": "Gas Price 报价 (Gwei)",
+    "title": "Gas Price (Gwei)",
     "subtitle": "基于以往3区块内存费的估价",
     "installExtension": "安装 Gas 浏览器插件",
     "priority": "优先费",
@@ -113,15 +113,26 @@
   },
   "burn": {
     "title": "燃烧记录",
+    "history": "燃烧历史",
     "period": "时间",
     "totalBurned": "燃烧总量",
     "currentPeriod": "当前周期",
     "burnRate": "燃烧率",
+    "avgPerBlock": "平均/区块",
     "recentBlocks": "区块",
     "recentBurns": "燃烧记录",
     "rankings": "燃烧排行",
     "categories": "燃烧类别",
-    "gas": "Gas"
+    "gas": "Gas",
+    "loading": "加载中...",
+    "failed": "加载失败",
+    "noData": "暂无数据",
+    "noBlocks": "未找到区块，请运行: pnpm run sync:base-fees",
+    "table": {
+      "block": "区块",
+      "gasFee": "气费",
+      "burnt": "燃烧"
+    }
   },
   "footer": {
     "brand": {

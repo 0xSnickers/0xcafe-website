@@ -9,7 +9,8 @@
       "Bash(timeout /t 10)",
       "Bash(pnpm add:*)",
       "Bash(dir /b \"D:\\Josen\\GithubCoding\\0xSnickers\\0xcafe-website\\app\\api\")",
-      "WebFetch(domain:etherscan.io)"
+      "WebFetch(domain:etherscan.io)",
+      "WebSearch"
     ],
     "deny": [],
     "ask": []
