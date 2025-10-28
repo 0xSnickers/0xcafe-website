@@ -53,13 +53,13 @@ async function testConnection() {
   
   try {
     // 尝试查询一个简单的系统表
-    const { data, error } = await supabase
+    const { data, error: dbError } = await supabase
       .from('base_fees')
       .select('count')
       .limit(1)
     
-    if (error && error.code !== 'PGRST116') { // PGRST116 是"未找到"错误
-      throw error
+    if (dbError && dbError.code !== 'PGRST116') { // PGRST116 是"未找到"错误
+      throw dbError
     }
     
     success('Supabase 连接成功')
@@ -109,18 +109,18 @@ async function testTableStructure() {
   
   try {
     // 检查表是否存在及其结构
-    const { data, error } = await supabase
+    const { data, error: dbError } = await supabase
       .from('base_fees')
       .select('*')
       .limit(1)
     
-    if (error) {
-      if (error.code === '42P01') {
+    if (dbError) {
+      if (dbError.code === '42P01') {
         error('base_fees 表不存在，需要运行迁移脚本')
         info('请执行: psql -h <host> -U <user> -d <database> -f backend/postgresql/migrations/001_create_base_fees.sql')
         return false
       }
-      throw error
+      throw dbError
     }
     
     success('base_fees 表存在')
