@@ -26,8 +26,6 @@ export function BurnHistorySection() {
   // 获取燃烧总量
   const {
     data: totalBurned,
-    isLoading: totalLoading,
-    error: totalError,
   } = useFormattedBurntFees(1, selectedPeriod)
 
   // 获取最近30个区块

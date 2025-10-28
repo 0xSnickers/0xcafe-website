@@ -27,6 +27,7 @@ export async function GET(request: NextRequest) {
       )
     }
     
+    // eslint-disable-next-line no-console
     console.log('🔄 Cron job triggered:', new Date().toISOString())
     
     // 执行同步
@@ -37,6 +38,7 @@ export async function GET(request: NextRequest) {
       timestamp: new Date().toISOString(),
     })
   } catch (error) {
+    // eslint-disable-next-line no-console
     console.error('❌ Cron job failed:', error)
     
     return NextResponse.json(
