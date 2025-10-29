@@ -1,9 +1,9 @@
 name: Sync Base Fees to PostgreSQL
 
 on:
-  # 定时执行：每5分钟
+  # 定时执行：每小时执行一次
   schedule:
-    - cron: '*/5 * * * *'
+    - cron: '0 * * * *'
   
   # 允许手动触发
   workflow_dispatch:
