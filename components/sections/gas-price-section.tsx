@@ -13,8 +13,9 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
-import { useGasPrice } from '@/hooks/use-gas-data'
-import { SupportedChain, getAllChains, ChainConfig } from '@/lib'
+import { useGasPrice } from '@/hooks/queries'
+import { type SupportedChain, type ChainConfig } from '@/config'
+import { getAllChains } from '@/config'
 
 const CHAIN_CONFIGS = getAllChains()
 
@@ -44,17 +45,27 @@ export function GasPriceSection() {
   const [eip1559Enabled, setEip1559Enabled] = React.useState(true)
   const [currency, setCurrency] = React.useState('USD')
 
-  // 获取当前选中的链
+  // 获取当前选中的链和链ID
   const currentChain = React.useMemo((): SupportedChain => {
     const coinMap: Record<string, SupportedChain> = {
       'eth': 'ethereum',
-      'bsc': 'bsc',
       'polygon': 'polygon',
       'arbitrum': 'arbitrum',
       'base': 'base',
       'op': 'optimism',
     }
     return coinMap[selectedCoin] || 'ethereum'
+  }, [selectedCoin])
+
+  const currentChainId = React.useMemo(() => {
+    const chainIdMap: Record<string, number> = {
+      'eth': 1,
+      'polygon': 137,
+      'arbitrum': 42161,
+      'base': 8453,
+      'op': 10,
+    }
+    return chainIdMap[selectedCoin] || 1
   }, [selectedCoin])
 
   // 倒计时状态
@@ -66,7 +77,7 @@ export function GasPriceSection() {
     isLoading: gasLoading,
     error: gasError,
     dataUpdatedAt,
-  } = useGasPrice(currentChain, {
+  } = useGasPrice(currentChainId, {
     refetchInterval: 15000, // 每15秒刷新
   })
 
@@ -86,7 +97,7 @@ export function GasPriceSection() {
 
   // 计算Gas价格数据
   const gasPrices = React.useMemo(() => {
-    if (!gasData) {
+    if (!gasData?.data) {
       // 返回默认占位数据
       return GAS_TIERS.map(tier => ({
         ...tier,
@@ -100,10 +111,11 @@ export function GasPriceSection() {
     }
 
     // 简化的价格映射 - 对应 Low、Average、High
+    // 新 API 返回格式: { success: true, data: { SafeGasPrice, ProposeGasPrice, FastGasPrice } }
     const priceMap = {
-      low: gasData.safe,
-      average: gasData.propose,
-      high: gasData.fast,
+      low: parseFloat(gasData.data.SafeGasPrice),
+      average: parseFloat(gasData.data.ProposeGasPrice),
+      high: parseFloat(gasData.data.FastGasPrice),
     }
 
     return GAS_TIERS.map(tier => {
@@ -349,15 +361,15 @@ export function GasPriceSection() {
             <div>
               <span className="mr-2">{t('gas.baseGasPrice')}:</span>
               <span className="font-semibold text-foreground">
-                {gasData ? `${gasData.gasPrice.toFixed(2)} Gwei` : '-.-- Gwei'}
+                {gasData?.data ? `${parseFloat(gasData.data.gasPrice).toFixed(2)} Gwei` : '-.-- Gwei'}
               </span>
             </div>
-            {gasData && (
+            {gasData?.data && (
               <div className="flex items-center gap-2">
                 <span className="text-muted-foreground">•</span>
                 <span className="mr-2">区块:</span>
                 <span className="font-semibold text-foreground">
-                  #{gasData.lastBlock.toLocaleString()}
+                  #{parseInt(gasData.data.LastBlock).toLocaleString()}
                 </span>
               </div>
             )}

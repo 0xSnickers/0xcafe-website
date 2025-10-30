@@ -3,6 +3,7 @@
 import * as React from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
+import { usePathname } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Menu, X, ChevronDown } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
@@ -13,6 +14,7 @@ import { LocaleToggle } from '@/components/locale-toggle'
 import { WalletButton } from '@/components/web3/wallet-button'
 import { TelegramConnect } from '@/components/telegram'
 import { Separator } from '@/components/ui/separator'
+import type { Locale } from '@/lib/i18n/shared'
 
 /**
  * 网站头部组件 - Web3工具箱风格
@@ -23,6 +25,16 @@ export function Header() {
   const [isScrolled, setIsScrolled] = React.useState(false)
   const [activeDropdown, setActiveDropdown] = React.useState<string | null>(null)
   const { t } = useTranslation()
+  const pathname = usePathname()
+  
+  // 从路径中提取当前语言
+  const locale = React.useMemo(() => {
+    const segments = pathname.split('/')
+    return (segments[1] === 'en' || segments[1] === 'zh' ? segments[1] : 'en') as Locale
+  }, [pathname])
+  
+  // 构建带语言前缀的链接
+  const localizedHref = (href: string) => `/${locale}${href}`
 
   // 监听滚动事件
   React.useEffect(() => {
@@ -91,7 +103,7 @@ export function Header() {
       <div className="container mx-auto px-4">
         <div className="flex items-center h-16 gap-2 sm:gap-8">
           {/* Logo - Left */}
-          <Link href="/" className="flex items-center space-x-2 flex-shrink-0">
+          <Link href={localizedHref("/")} className="flex items-center space-x-2 flex-shrink-0">
             <motion.div
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
@@ -132,7 +144,7 @@ export function Header() {
                 onMouseEnter={() => item.hasDropdown && setActiveDropdown(item.id)}
                 onMouseLeave={() => setActiveDropdown(null)}
               >
-                <Link href={item.href}>
+                <Link href={localizedHref(item.href)}>
                   <Button 
                     variant="ghost" 
                     className="text-base group relative"
@@ -158,7 +170,7 @@ export function Header() {
                       className="absolute top-full left-0 mt-1 w-56 rounded-lg border bg-background/95 backdrop-blur-lg shadow-lg overflow-hidden"
                     >
                       {item.items.map((subItem, index) => (
-                        <Link key={subItem.href} href={subItem.href}>
+                        <Link key={subItem.href} href={localizedHref(subItem.href)}>
                           <motion.div
                             initial={{ opacity: 0, x: -10 }}
                             animate={{ opacity: 1, x: 0 }}
@@ -206,7 +218,7 @@ export function Header() {
             <nav className="flex flex-col space-y-2">
               {navItems.map((item) => (
                 <div key={item.id}>
-                  <Link href={item.href}>
+                  <Link href={localizedHref(item.href)}>
                     <Button
                       variant="ghost"
                       className="w-full justify-start text-base"
@@ -221,7 +233,7 @@ export function Header() {
                   {item.hasDropdown && item.items && (
                     <div className="ml-4 mt-1 space-y-1">
                       {item.items.map((subItem) => (
-                        <Link key={subItem.href} href={subItem.href}>
+                        <Link key={subItem.href} href={localizedHref(subItem.href)}>
                           <Button
                             variant="ghost"
                             size="sm"

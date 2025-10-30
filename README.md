@@ -1,6 +1,6 @@
 # 0xcafe Website
 
-A modern, responsive website built with Next.js 15, featuring multi-language support, theme switching, and smooth animations.
+A Free Blockchain Tools Website, Make web3 on-chain operations simpler and faster.
 
 ## ✨ Features
 
@@ -50,34 +50,14 @@ pnpm dev
 ```
 .
 ├── app/                      # Next.js App Router pages
-│   ├── api/                 # API routes
-│   │   ├── gas/            # Gas price API
-│   │   └── database/       # Database API endpoints
-│   ├── globals.css          # Global styles
-│   ├── layout.tsx           # Root layout
-│   └── page.tsx             # Home page
 ├── components/              # React components
-│   ├── ui/                  # Base UI components
-│   ├── layout/              # Layout components
-│   ├── sections/            # Page sections
-│   ├── providers/           # Context providers
-│   ├── theme-toggle.tsx     # Theme switcher
-│   └── locale-toggle.tsx    # Language switcher
 ├── backend/                 # Backend code
 │   ├── http/                # HTTP client and APIs
 │   ├── postgresql/          # PostgreSQL/Supabase integration
-│   │   ├── client.ts        # Database client
-│   │   ├── queries.ts       # Database queries
-│   │   ├── types.ts         # Database types
-│   │   └── README.md        # Database documentation
 │   └── services/            # Backend services
 ├── lib/                     # Utility functions
 │   ├── utils.ts             # General utilities
 │   └── i18n/                # i18n configuration
-│       ├── config.ts        # i18next setup
-│       └── locales/         # Translation files
-│           ├── en.json      # English
-│           └── zh.json      # Chinese
 ├── subgraph/                # The Graph subgraph code
 ├── public/                  # Static assets
 ├── docs/                    # Documentation
@@ -97,72 +77,6 @@ pnpm dev
 - **Icons**: Lucide React
 - **Database**: PostgreSQL (Supabase)
 - **Blockchain**: The Graph, Wagmi, Viem
-
-## 📚 Documentation
-
-- [Development Guide](./docs/DEVELOPMENT.md)
-- [Component Documentation](./docs/COMPONENTS.md)
-- [Internationalization (i18n)](./docs/I18N.md)
-- [API Documentation](./docs/API.md)
-- [Deployment Guide](./docs/DEPLOYMENT.md)
-- [Architecture](./docs/ARCHITECTURE.md)
-
-## 🧪 Available Scripts
-
-```bash
-# Development
-pnpm dev          # Start dev server
-pnpm build        # Build for production
-pnpm start        # Start production server
-pnpm lint         # Run ESLint
-pnpm type-check   # Run TypeScript checks
-pnpm format       # Format code with Prettier
-
-# Testing
-pnpm test         # Run tests
-pnpm test:watch   # Run tests in watch mode
-pnpm test:coverage # Run tests with coverage
-```
-
-## 🎨 Features Implementation
-
-### Theme Switching
-The website supports light/dark theme switching using `next-themes`. The theme preference is automatically saved to localStorage.
-
-### Multi-language Support
-Professional i18n implementation using i18next and react-i18next. Supports English and Chinese with easy extensibility for additional languages. Language preference is automatically saved to localStorage.
-
-### Responsive Design
-Mobile-first responsive design using Tailwind CSS breakpoints:
-- Mobile: < 768px
-- Tablet: 768px - 1024px
-- Desktop: > 1024px
-
-### Animations
-Smooth page transitions and component animations using Framer Motion, including:
-- Page enter/exit animations
-- Scroll-triggered animations
-- Hover effects
-- Custom motion components
-
-## 🌐 Browser Support
-
-- Chrome (latest)
-- Firefox (latest)
-- Safari (latest)
-- Edge (latest)
-
-## 📝 License
-
-This project is licensed under the MIT License.
-
-## 🤝 Contributing
-
-Contributions are welcome! Please feel free to submit a Pull Request.
-
-## 📧 Contact
-
-For questions or feedback, please contact us at [your-email@example.com](mailto:your-email@example.com)
 
 ---
 

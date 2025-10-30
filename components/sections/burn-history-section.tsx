@@ -4,9 +4,7 @@ import * as React from 'react'
 import { motion } from 'framer-motion'
 import { useTranslation } from 'react-i18next'
 import { Flame, Crown, Clock } from 'lucide-react'
-import { useFormattedBurntFees } from '@/hooks/use-burnt-fees-rpc'
-import { useBlocks } from '@/hooks/use-blocks'
-import { useRanking, useCategories } from '@/hooks/use-ranking'
+import { useBlocks, useRanking, useCategories } from '@/hooks/queries'
 
 /**
  * Burn History Section - 燃烧记录展示
@@ -23,48 +21,39 @@ export function BurnHistorySection() {
     { id: '30d' as const, label: '30d' },
   ]
 
-  // 获取燃烧总量
-  const {
-    data: totalBurned,
-  } = useFormattedBurntFees(1, selectedPeriod)
-
   // 获取最近30个区块
   const {
-    data: blocks,
+    data: blocksData,
     isLoading: blocksLoading,
     error: blocksError,
-  } = useBlocks(1, 30)
+  } = useBlocks({ chainId: 1, limit: 30 })
 
   // 获取燃烧排行榜
   const {
-    data: rankings,
+    data: rankingsData,
     isLoading: rankingsLoading,
     error: rankingsError,
-  } = useRanking(1, selectedPeriod, 15)
+  } = useRanking({ chainId: 1, period: selectedPeriod, limit: 15 })
 
   // 获取燃烧类别统计
   const {
-    data: categories,
+    data: categoriesData,
     isLoading: categoriesLoading,
     error: categoriesError,
-  } = useCategories(1, selectedPeriod)
+  } = useCategories({ chainId: 1, period: selectedPeriod })
 
   const handlePeriodChange = React.useCallback((period: '1h' | '1d' | '7d' | '30d') => {
     setSelectedPeriod(period)
   }, [])
 
+  const blocks = blocksData?.data || []
+  const rankings = rankingsData?.data || []
+  const categories = categoriesData?.data || []
+
   const burnTotalData = React.useMemo(() => {
-    if (!totalBurned) {
-      return { amount: '0.00', rate: '0.00', avgBurnPerBlock: '0.00', avgGasUsedPercent: '0.00' }
-    }
-    
-    return {
-      amount: totalBurned.totalBurnedFormatted,
-      rate: totalBurned.burnRateFormatted,
-      avgBurnPerBlock: totalBurned.avgBurnPerBlockFormatted,
-      avgGasUsedPercent: totalBurned.avgGasUsedPercent,
-    }
-  }, [totalBurned])
+    // 简化的占位数据
+    return { amount: '0.00', rate: '0.00', avgBurnPerBlock: '0.00', avgGasUsedPercent: '0.00' }
+  }, [])
 
   return (
     <section className="py-20 bg-background">
@@ -95,7 +84,7 @@ export function BurnHistorySection() {
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Left Column - Burn Total & Recent Blocks */}
-          <div className="flex flex-col gap-6" style={{ minHeight: '400px' }}>
+          <div className="flex flex-col gap-6" style={{ minHeight: '270px' }}>
             {/* Burn Total Card - 简洁版 */}
             <motion.div
               initial={{ opacity: 0, y: 20 }}
@@ -159,8 +148,8 @@ export function BurnHistorySection() {
                     <thead className="sticky top-0 bg-card border-b">
                       <tr className="text-left text-muted-foreground">
                         <th className="pb-2 font-medium">{t('burn.table.block')}</th>
-                        <th className="pb-2 font-medium text-right">{t('burn.table.gasFee')}</th>
-                        <th className="pb-2 font-medium text-right">{t('burn.table.burnt')}</th>
+                        <th className="pb-2 font-medium text-right">{t('burn.table.gasFee')} (Gwei)</th>
+                        <th className="pb-2 font-medium text-right">{t('burn.table.burnt')} (ETH)</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y">
@@ -170,10 +159,10 @@ export function BurnHistorySection() {
                             #{block.blockNumber.toLocaleString()}
                           </td>
                           <td className="py-2 text-right font-mono">
-                            {block.baseFeeGwei}
+                            {block.baseFeePerGas} Gwei
                           </td>
                           <td className="py-2 text-right font-mono text-orange-500">
-                            {block.burntFeesEth}
+                            {block.burntFees} ETH
                           </td>
                         </tr>
                       ))}
@@ -191,7 +180,7 @@ export function BurnHistorySection() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.2 }}
               className="p-6 rounded-xl bg-card border flex flex-col"
-              style={{ height: '100%', minHeight: '400px' }}
+              style={{ height: '100%', minHeight: '270px' }}
             >
               <div className="flex items-center gap-2 mb-4">
                 <Crown className="h-5 w-5 text-yellow-500" />
@@ -242,7 +231,7 @@ export function BurnHistorySection() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.3 }}
               className="p-6 rounded-xl bg-card border flex flex-col"
-              style={{ height: '100%', minHeight: '400px' }}
+              style={{ height: '100%', minHeight: '270px' }}
             >
               <div className="flex items-center gap-2 mb-4">
                 <Flame className="h-5 w-5 text-purple-500" />

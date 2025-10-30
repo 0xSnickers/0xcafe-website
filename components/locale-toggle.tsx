@@ -1,17 +1,18 @@
 'use client'
 
 import * as React from 'react'
+import { useRouter, usePathname } from 'next/navigation'
 import { Languages } from 'lucide-react'
-import { useTranslation } from 'react-i18next'
 import { Button } from '@/components/ui/button'
-import { localeNames, type Locale } from '@/lib/i18n/config'
+import { localeNames, type Locale } from '@/lib/i18n/shared'
 
 /**
  * 语言切换按钮组件
- * 使用 react-i18next 支持中英文切换
+ * 使用路由切换支持中英文切换
  */
 export function LocaleToggle() {
-  const { i18n } = useTranslation()
+  const router = useRouter()
+  const pathname = usePathname()
   const [mounted, setMounted] = React.useState(false)
 
   // 避免水合错误
@@ -19,13 +20,25 @@ export function LocaleToggle() {
     setMounted(true)
   }, [])
 
+  // 从路径中提取当前语言
+  const currentLocale = React.useMemo(() => {
+    const segments = pathname.split('/')
+    return (segments[1] === 'en' || segments[1] === 'zh' ? segments[1] : 'en') as Locale
+  }, [pathname])
+
   const toggleLocale = () => {
-    const newLocale = i18n.language === 'en' ? 'zh' : 'en'
-    i18n.changeLanguage(newLocale)
-    // 保存到 localStorage
-    if (typeof window !== 'undefined') {
-      localStorage.setItem('locale', newLocale)
-    }
+    const newLocale = currentLocale === 'en' ? 'zh' : 'en'
+    
+    // 构建新路径：替换第一个路径段（语言代码）
+    const segments = pathname.split('/')
+    segments[1] = newLocale
+    const newPath = segments.join('/')
+    
+    // 设置 cookie
+    document.cookie = `NEXT_LOCALE=${newLocale}; path=/; max-age=${60 * 60 * 24 * 365}`
+    
+    // 导航到新路径
+    router.push(newPath)
   }
 
   if (!mounted) {
@@ -35,8 +48,6 @@ export function LocaleToggle() {
       </Button>
     )
   }
-
-  const currentLocale = i18n.language as Locale
 
   return (
     <Button
