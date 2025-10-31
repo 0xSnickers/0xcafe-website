@@ -14,7 +14,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { useGasPrice } from '@/hooks/queries'
-import { type SupportedChain, type ChainConfig } from '@/config'
+import { type ChainConfig } from '@/config'
 import { getAllChains } from '@/config'
 
 const CHAIN_CONFIGS = getAllChains()
