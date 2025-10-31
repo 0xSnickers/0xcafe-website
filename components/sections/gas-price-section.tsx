@@ -46,6 +46,7 @@ export function GasPriceSection() {
   const [currency, setCurrency] = React.useState('USD')
 
   // 获取当前选中的链和链ID
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const currentChain = React.useMemo((): SupportedChain => {
     const coinMap: Record<string, SupportedChain> = {
       'eth': 'ethereum',

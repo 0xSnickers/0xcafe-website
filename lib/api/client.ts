@@ -14,7 +14,7 @@ export class ApiError extends Error {
   constructor(
     message: string,
     public status?: number,
-    public data?: any
+    public _data?: any
   ) {
     super(message)
     this.name = 'ApiError'
@@ -28,7 +28,7 @@ export const apiClient = {
   /**
    * GET 请求
    */
-  async get<T>(url: string, options?: RequestInit): Promise<T> {
+  async get<T>(url: string, options?: Record<string, any>): Promise<T> {
     try {
       const response = await fetch(url, {
         method: 'GET',
@@ -61,7 +61,7 @@ export const apiClient = {
   /**
    * POST 请求
    */
-  async post<T>(url: string, body?: any, options?: RequestInit): Promise<T> {
+  async post<T>(url: string, body?: any, options?: Record<string, any>): Promise<T> {
     try {
       const response = await fetch(url, {
         method: 'POST',

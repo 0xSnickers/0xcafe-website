@@ -13,6 +13,7 @@ export function withLogging(handler: Function) {
     const start = Date.now()
     const { pathname, searchParams } = new URL(request.url)
     
+    // eslint-disable-next-line no-console
     console.log(`[API] ${request.method} ${pathname}`, {
       params: Object.fromEntries(searchParams),
       timestamp: new Date().toISOString(),
@@ -22,11 +23,13 @@ export function withLogging(handler: Function) {
       const response = await handler(request)
       const duration = Date.now() - start
       
+      // eslint-disable-next-line no-console
       console.log(`[API] ${request.method} ${pathname} - ${response.status} (${duration}ms)`)
       
       return response
     } catch (error) {
       const duration = Date.now() - start
+      // eslint-disable-next-line no-console
       console.error(`[API] ${request.method} ${pathname} - Error (${duration}ms)`, error)
       throw error
     }
