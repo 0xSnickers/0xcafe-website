@@ -45,19 +45,7 @@ export function GasPriceSection() {
   const [eip1559Enabled, setEip1559Enabled] = React.useState(true)
   const [currency, setCurrency] = React.useState('USD')
 
-  // 获取当前选中的链和链ID
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const currentChain = React.useMemo((): SupportedChain => {
-    const coinMap: Record<string, SupportedChain> = {
-      'eth': 'ethereum',
-      'polygon': 'polygon',
-      'arbitrum': 'arbitrum',
-      'base': 'base',
-      'op': 'optimism',
-    }
-    return coinMap[selectedCoin] || 'ethereum'
-  }, [selectedCoin])
-
+  // 获取当前选中的链ID
   const currentChainId = React.useMemo(() => {
     const chainIdMap: Record<string, number> = {
       'eth': 1,

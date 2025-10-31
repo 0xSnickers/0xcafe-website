@@ -11,11 +11,7 @@ export interface ApiResponse<T = any> {
 }
 
 export class ApiError extends Error {
-  constructor(
-    message: string,
-    public status?: number,
-    public _data?: any
-  ) {
+  constructor(message: string) {
     super(message)
     this.name = 'ApiError'
   }
@@ -41,8 +37,7 @@ export const apiClient = {
 
       if (!response.ok) {
         throw new ApiError(
-          `HTTP error! status: ${response.status}`,
-          response.status
+          `HTTP error! status: ${response.status}`
         )
       }
 
@@ -75,8 +70,7 @@ export const apiClient = {
 
       if (!response.ok) {
         throw new ApiError(
-          `HTTP error! status: ${response.status}`,
-          response.status
+          `HTTP error! status: ${response.status}`
         )
       }
 

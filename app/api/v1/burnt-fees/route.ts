@@ -22,8 +22,8 @@ export async function GET(request: NextRequest) {
   
   try {
     const { searchParams } = new URL(request.url)
-    const chainId = parseInt(searchParams.get('chainId') || '1')
     const period = searchParams.get('period') || '1d'
+    // const chainId = parseInt(searchParams.get('chainId') || '1') // TODO: 多链支持时使用
 
     // TODO: 实现实际的燃烧费用统计查询逻辑
     const result = {
